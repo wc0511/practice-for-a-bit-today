@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="zh-Hant-TW">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="description" content="今天練一下（Practice for a bit today）—— 次中音薩克斯風每日基本練習與節奏出題工具">
+<meta name="theme-color" content="#E8ECE9" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#101412" media="(prefers-color-scheme: dark)">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="今天練一下">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<title>今天練一下 · Practice for a bit today</title>
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@500&family=Manrope:wght@400;500;700;800&display=swap">
+<style>
+  :root{
+    --bg:#E8ECE9;
+    --surface:#FFFFFF;
+    --surface-2:#F1F5F2;
+    --ink:#131A17;
+    --muted:#5C6A63;
+    --line:#D1D9D4;
+    --accent:#1F5140;
+    --accent-soft:#DCEAE3;
+    --live:#A9552A;
+    --live-soft:#F6E6DA;
+    --stave:#131A17;
+    --on-accent:#FFFFFF;
+    --on-live:#FFFFFF;
+    --tab-h:60px;
+
+    --sans:"Manrope","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
+    --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --bg:#101412;
+      --surface:#191F1C;
+      --surface-2:#212926;
+      --ink:#E2E9E5;
+      --muted:#87938C;
+      --line:#29322D;
+      --accent:#6FBE9E;
+      --accent-soft:#183027;
+      --live:#D9905C;
+      --live-soft:#33241A;
+      --stave:#E2E9E5;
+      --on-accent:#101412;
+      --on-live:#101412;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#101412;
+    --surface:#191F1C;
+    --surface-2:#212926;
+    --ink:#E2E9E5;
+    --muted:#87938C;
+    --line:#29322D;
+    --accent:#6FBE9E;
+    --accent-soft:#183027;
+    --live:#D9905C;
+    --live-soft:#33241A;
+    --stave:#E2E9E5;
+    --on-accent:#101412;
+    --on-live:#101412;
+  }
+
+  *{box-sizing:border-box}
+  body{
+    background:var(--bg);color:var(--ink);font-family:var(--sans);font-size:15px;line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    padding-bottom:calc(var(--tab-h) + env(safe-area-inset-bottom, 0px) + 8px);
+  }
+  button{font-family:inherit}
+  .wrap{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:14px 24px}
+
+  /* ---------- app bar ---------- */
+  .appbar{position:sticky;top:env(safe-area-inset-top, 0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line)}
+  .appbar-in{max-width:900px;margin:0 auto;padding-inline:16px;padding-block:10px;display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .brand{font-weight:800;font-size:17px;letter-spacing:-.01em}
+  .brand span{color:var(--accent)}
+  .brand-wrap{display:flex;flex-direction:column;line-height:1.2}
+  .brand-en{font-family:var(--mono);font-size:10.5px;letter-spacing:.04em;color:var(--muted);margin-top:2px}
+  .date{font-family:var(--mono);font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* ---------- tab bar ---------- */
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:10;background:var(--surface);border-top:1px solid var(--line);padding-bottom:env(safe-area-inset-bottom, 0px)}
+  .tabbar-in{max-width:900px;margin:0 auto;display:grid;grid-template-columns:1fr 1fr;height:var(--tab-h)}
+  .tab{background:none;border:0;border-top:3px solid transparent;font-weight:700;font-size:14px;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px}
+  .tab small{font-family:var(--mono);font-size:10px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}
+  .tab[aria-selected="true"]{color:var(--accent);border-top-color:var(--accent)}
+  .tab:focus-visible{outline:2px solid var(--accent);outline-offset:-4px}
+
+  /* ---------- shared ---------- */
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card + .card{margin-top:12px}
+  .k{font-family:var(--mono);font-size:10.5px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:3px}
+  .opts{display:flex;gap:6px;flex-wrap:wrap}
+  .opt{
+    font-size:13px;font-weight:600;padding:7px 12px;border-radius:7px;cursor:pointer;
+    border:1px solid var(--line);background:var(--surface-2);color:var(--ink);white-space:nowrap;
+  }
+  .opt:focus-visible,.btn:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .opt[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  .btn{font-size:14px;font-weight:800;padding:11px 18px;border-radius:9px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);cursor:pointer;white-space:nowrap}
+  .btn.ghost{background:transparent;color:var(--accent)}
+  .btn.live{background:var(--live);border-color:var(--live);color:var(--on-live)}
+  .btn.sm{font-size:13px;padding:8px 13px}
+
+  /* ---------- today ---------- */
+  .hero{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:16px}
+  .hero-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px}
+  .hv{font-weight:800;font-size:24px;line-height:1.15;letter-spacing:-.01em}
+  .hsub{display:block;font-size:13px;color:var(--muted);margin-top:3px}
+  .hv.sp{color:var(--live)}
+  .hero-foot{display:flex;flex-wrap:wrap;gap:14px 22px;align-items:flex-end;justify-content:space-between;margin-top:16px;padding-top:14px;border-top:1px solid var(--line)}
+  .prog{flex:1 1 200px;min-width:0}
+  .prog-t{font-size:13.5px;color:var(--muted)}
+  .prog-t b{color:var(--ink);font-family:var(--mono);font-weight:500}
+  .bar{height:6px;border-radius:3px;background:var(--surface-2);border:1px solid var(--line);margin-top:6px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+
+  .banner{margin-top:12px;padding:12px 14px;border-radius:10px;background:var(--live-soft);border:1px solid var(--live);font-size:13.5px}
+  .banner b{color:var(--live)}
+
+  ol.items{list-style:none;margin:14px 0 0;padding:0;display:flex;flex-direction:column;gap:10px}
+  .item{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:start}
+  .item.sp{border-color:var(--live);box-shadow:inset 3px 0 0 var(--live)}
+  .item.skip{opacity:.55}
+  .item.done .it-name{text-decoration:line-through;text-decoration-thickness:1.5px;color:var(--muted)}
+  .chk{width:24px;height:24px;margin:1px 0 0;accent-color:var(--accent);cursor:pointer}
+  .it-head{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+  .it-num{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .it-name{font-weight:800;font-size:16px}
+  .badge{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;padding:2px 8px;border-radius:5px;margin-left:auto;white-space:nowrap}
+  .badge.do{background:var(--accent-soft);color:var(--accent)}
+  .badge.sp{background:var(--live);color:var(--on-live)}
+  .badge.skip{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+  .it-today{font-size:14px;margin:5px 0 0}
+  .it-sp{font-size:13px;margin:7px 0 0;padding:8px 10px;border-radius:7px;background:var(--live-soft);color:var(--ink)}
+  .it-sp b{color:var(--live)}
+  .chips{display:flex;gap:6px;flex-wrap:wrap;margin-top:8px}
+  .chip{font-family:var(--mono);font-size:10.5px;padding:2px 7px;border-radius:4px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+  details.how{margin-top:8px}
+  details.how summary{cursor:pointer;font-size:13px;font-weight:700;color:var(--accent);list-style:none}
+  details.how summary::-webkit-details-marker{display:none}
+  details.how summary::before{content:"＋ ";}
+  details.how[open] summary::before{content:"－ ";}
+  .how-body{font-size:13.5px;color:var(--muted);margin-top:8px}
+  .how-body p{margin:0 0 8px}
+  .how-body b{color:var(--ink)}
+  .how-body ul,.how-body ol{margin:0 0 8px;padding-left:18px}
+  .how-body li{margin-bottom:3px}
+  .mono{font-family:var(--mono);font-size:12.5px}
+  .it-act{margin-top:10px}
+
+  details.panel{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  details.panel summary{cursor:pointer;font-weight:800;font-size:15px}
+  table{width:100%;border-collapse:collapse;font-size:13.5px}
+  td{padding:5px 10px 5px 0;border-bottom:1px solid var(--line);vertical-align:baseline}
+  td.t{font-family:var(--mono);font-size:12px;color:var(--muted);white-space:nowrap;width:1%;padding-right:14px}
+  .panel-body{margin-top:12px;display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:18px;font-size:13.5px;color:var(--muted)}
+  .panel-body h3{font-size:14px;color:var(--ink);margin:0 0 8px}
+  .panel-body ol{margin:0;padding-left:18px}
+  .panel-body li{margin-bottom:6px}
+  .panel-body b{color:var(--ink)}
+
+  .keyinfo{margin-top:10px;display:flex;flex-direction:column;gap:8px}
+  .kx{display:grid;grid-template-columns:auto 1fr;column-gap:10px;row-gap:1px;align-items:baseline}
+  .kx .tag{grid-row:span 2;align-self:start;margin-top:2px;font-family:var(--mono);font-size:10.5px;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);white-space:nowrap}
+  .kx.out .tag{background:var(--surface-2);color:var(--muted);border:1px solid var(--line)}
+  .ksig{font-size:13.5px;font-weight:700;color:var(--ink)}
+  .kx.out .ksig{font-weight:500;color:var(--muted)}
+  .lead{font-weight:500;color:var(--live)}
+  .scl{font-family:var(--mono);font-size:12.5px;color:var(--muted);letter-spacing:.02em}
+  .note-s{font-size:12.5px;color:var(--muted);margin:0}
+  #keyList{margin-top:10px}
+
+  /* ---------- rhythm ---------- */
+  .ctrl{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end}
+  .grp{display:flex;flex-direction:column;gap:6px}
+  .score-card{padding:12px 14px 14px}
+  .score-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+  .sig{font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .score{display:flex;flex-direction:column;gap:2px;align-items:center}
+  .score svg{display:block;height:auto}
+  .score .ev.hot .f{fill:var(--live)}
+  .score .ev.hot .s{stroke:var(--live)}
+  .play-row{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;margin-top:10px;padding-top:12px;border-top:1px solid var(--line)}
+  .status{font-family:var(--mono);font-size:12.5px;color:var(--muted);min-width:7em}
+  .status.on{color:var(--live)}
+  label.inl{display:flex;align-items:center;gap:7px;font-size:13px;color:var(--muted);cursor:pointer}
+  label.inl input{width:18px;height:18px;accent-color:var(--accent)}
+
+  .met-row{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end}
+  .bpm-box{flex:1 1 200px;min-width:0}
+  .bpm-top{display:flex;align-items:baseline;gap:8px}
+  .bpm-num{font-family:var(--mono);font-size:28px;line-height:1;font-variant-numeric:tabular-nums}
+  .bpm-unit{font-family:var(--mono);font-size:11px;color:var(--muted)}
+  input[type=range]{width:100%;accent-color:var(--accent);margin:8px 0 4px}
+  .dots{display:flex;gap:7px}
+  .bd{width:11px;height:11px;border-radius:50%;background:var(--line)}
+  .bd.on{background:var(--live)}
+  details.panel ol.flow{margin:10px 0 0;padding-left:18px;font-size:13.5px;color:var(--muted)}
+  details.panel ol.flow li{margin-bottom:6px}
+  details.panel ol.flow b{color:var(--ink)}
+
+  @media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+<style>
+  :root{color-scheme:light dark;padding-top:env(safe-area-inset-top, 0px)}
+  html{-webkit-text-size-adjust:100%}
+  body{margin:0}
+  img{max-width:100%}
+  [hidden]{display:none!important}
+</style>
+</head>
+<body>
+<header class="appbar">
+  <div class="appbar-in">
+    <span class="brand-wrap"><span class="brand">今天<span>練一下</span></span><span class="brand-en">Practice for a bit today</span></span>
+    <span class="date" id="dateStr"></span>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- ================= 今日練習 ================= -->
+  <section id="view-today">
+    <div class="hero">
+      <div class="hero-grid">
+        <div>
+          <span class="k">今日調性</span>
+          <span class="hv" id="hKey">—</span>
+          <div class="keyinfo" id="keyInfo"></div>
+        </div>
+        <div>
+          <span class="k">今日特訓</span>
+          <span class="hv sp" id="hSp">—</span>
+          <span class="hsub" id="hSpSub"></span>
+        </div>
+      </div>
+      <div class="hero-foot">
+        <div class="grp">
+          <span class="k">今天有多少時間</span>
+          <div class="opts" id="modeOpts">
+            <button class="opt" data-m="full" aria-pressed="true">完整</button>
+            <button class="opt" data-m="30" aria-pressed="false">30 分</button>
+            <button class="opt" data-m="15" aria-pressed="false">15 分</button>
+          </div>
+        </div>
+        <div class="prog">
+          <div class="prog-t">已完成 <b id="pDone">0</b> / <b id="pTotal">0</b> 項 · 預估 <b id="pMin">0</b> 分鐘</div>
+          <div class="bar"><i id="pBar"></i></div>
+        </div>
+      </div>
+    </div>
+
+    <details class="panel" id="keyPanel">
+      <summary id="keySum">調性範圍</summary>
+      <div style="margin-top:12px">
+        <span class="k">輪替哪些調 —— 依調號的升降記號數（可複選）</span>
+        <div class="opts" id="cntOpts"></div>
+        <p class="note-s" id="keyList"></p>
+        <span class="k" style="margin-top:14px">小調配對</span>
+        <div class="opts" id="pairOpts">
+          <button class="opt" data-p="rel" aria-pressed="true">關係小調（同調號）</button>
+          <button class="opt" data-p="par" aria-pressed="false">同主音小調（進階）</button>
+        </div>
+      </div>
+    </details>
+
+    <div class="banner" id="weekBanner" hidden></div>
+    <div class="banner" id="monthBanner" hidden></div>
+
+    <ol class="items" id="items"></ol>
+
+    <details class="panel">
+      <summary>每週檢查點與時間預算</summary>
+      <div class="panel-body">
+        <div>
+          <h3>每週檢查點（週日）</h3>
+          <ol>
+            <li><b>錄音存檔。</b>低音 D 長音 → 高音 D 長音 → 一段音階。固定同一套錄音設定，用日期命名。</li>
+            <li><b>調音器跑半音階一遍。</b>記下固定偏的音。</li>
+            <li><b>每月一號檢視速度。</b>達標 +4，出錯 -8，不要硬撐。</li>
+          </ol>
+        </div>
+        <div>
+          <h3>時間預算</h3>
+          <table>
+            <tr><td class="t">10–12 分</td><td>1 · 長音</td></tr>
+            <tr><td class="t">8–10 分</td><td>2 · 泛音對照</td></tr>
+            <tr><td class="t">10–12 分</td><td>3 · 反覆音模進</td></tr>
+            <tr><td class="t">6–8 分</td><td>4 · 點舌</td></tr>
+            <tr><td class="t">8 分</td><td>5 · 半音階（隔天）</td></tr>
+            <tr><td class="t">5–8 分</td><td>6 · 節奏組合</td></tr>
+          </table>
+          <p style="margin:10px 0 0"><b>30 分：</b>1（只做高音區）→ 2 → 今日特訓項（特訓不在 1、2 時；否則做 3 的大調）<br><b>15 分：</b>1（只做高音區）→ 2<br><b style="color:var(--live)">1 和 2 永遠不砍。</b></p>
+        </div>
+      </div>
+    </details>
+  </section>
+
+  <!-- ================= 節奏出題 ================= -->
+  <section id="view-rhythm" hidden>
+    <div class="card">
+      <div class="ctrl">
+        <div class="grp">
+          <span class="k">難度（可複選）</span>
+          <div class="opts" id="lvOpts">
+            <button class="opt" data-lv="1" aria-pressed="true">Lv1 基礎</button>
+            <button class="opt" data-lv="2" aria-pressed="true">Lv2 附點・十六</button>
+            <button class="opt" data-lv="3" aria-pressed="false">Lv3 三連音</button>
+          </div>
+        </div>
+        <div class="grp">
+          <span class="k">小節數</span>
+          <div class="opts" id="barOpts">
+            <button class="opt" data-bars="1" aria-pressed="false">1</button>
+            <button class="opt" data-bars="2" aria-pressed="true">2</button>
+            <button class="opt" data-bars="4" aria-pressed="false">4</button>
+          </div>
+        </div>
+        <div class="grp">
+          <span class="k">特訓</span>
+          <div class="opts"><button class="opt" id="drillBtn" aria-pressed="false">附點 ↔ 三連音</button></div>
+        </div>
+        <button class="btn" id="genBtn">重新出題</button>
+      </div>
+    </div>
+
+    <div class="card score-card">
+      <div class="score-top">
+        <span class="k" style="margin:0">題目</span>
+        <span class="sig" id="sigLabel"></span>
+      </div>
+      <div class="score" id="score"></div>
+      <div class="play-row">
+        <button class="btn live" id="playBtn">▶ 播放正確節奏</button>
+        <span class="status" id="playStatus">先自己吹，再對答案</span>
+        <label class="inl"><input type="checkbox" id="playClick" checked>播放時加節拍</label>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="met-row">
+        <div class="bpm-box">
+          <span class="k">速度（播放與節拍器共用）</span>
+          <div class="bpm-top"><span class="bpm-num" id="bpmNum">80</span><span class="bpm-unit">BPM</span></div>
+          <input type="range" id="bpm" min="40" max="160" step="1" value="80" aria-label="速度">
+          <div class="dots" id="dots"><span class="bd"></span><span class="bd"></span><span class="bd"></span><span class="bd"></span></div>
+        </div>
+        <div class="grp">
+          <span class="k">節拍器模式 —— 越往右越難</span>
+          <div class="opts" id="metOpts">
+            <button class="opt" data-mode="all" aria-pressed="true">每拍</button>
+            <button class="opt" data-mode="one" aria-pressed="false">只響第 1 拍</button>
+            <button class="opt" data-mode="back" aria-pressed="false">反拍 2・4</button>
+            <button class="opt" data-mode="off" aria-pressed="false">後半拍</button>
+          </div>
+        </div>
+        <button class="btn ghost" id="metBtn">開始節拍器</button>
+      </div>
+    </div>
+
+    <details class="panel">
+      <summary>練習流程與節拍器推進</summary>
+      <ol class="flow">
+        <li><b>先唱，再吹。</b>唱不出來的節奏，吹也不會對。</li>
+        <li><b>用單一音吹。</b>穩了之後再把音高換成當天的音階。</li>
+        <li><b>吹完再按播放對答案。</b>播放前會先有一小節預備拍。</li>
+        <li><b>錄下來聽。</b>附點和三連音最容易自我欺騙。</li>
+        <li><b>節拍器往右推：</b>每拍 → 只響第 1 拍 → 反拍 → 後半拍。每往右一階，你會發現自己其實一直在靠外部參照。</li>
+      </ol>
+    </details>
+  </section>
+</main>
+
+<nav class="tabbar" aria-label="主選單">
+  <div class="tabbar-in" role="tablist">
+    <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">今日練習<small>Today</small></button>
+    <button class="tab" role="tab" id="tab-rhythm" aria-selected="false" data-view="rhythm">節奏出題<small>Rhythm</small></button>
+  </div>
+</nav>
+
+<script>
+(function(){
+  /* ============ 小工具 ============ */
+  function mod(a,n){ return ((a % n) + n) % n; }
+  function $(id){ return document.getElementById(id); }
+  function load(k, dflt){ try{ var v = localStorage.getItem("tenorapp:"+k); return v === null ? dflt : JSON.parse(v); }catch(e){ return dflt; } }
+  function save(k, v){ try{ localStorage.setItem("tenorapp:"+k, JSON.stringify(v)); }catch(e){} }
+  function setPressed(b, v){ b.setAttribute("aria-pressed", v ? "true" : "false"); }
+
+  /* ============ 日期與輪替 ============ */
+  var now = new Date();
+  var ymd = now.getFullYear() + "-" + String(now.getMonth()+1).padStart(2,"0") + "-" + String(now.getDate()).padStart(2,"0");
+  var dayNum = Math.floor(Date.UTC(now.getFullYear(), now.getMonth(), now.getDate()) / 86400000);
+  var dow = now.getDay();
+  var WEEK = ["日","一","二","三","四","五","六"];
+  $("dateStr").textContent = ymd.replace(/-/g," / ") + " · 週" + WEEK[dow];
+
+  var KEYS = [
+    {M:"C",  n:0, t:"",  sig:[], sc:"C D E F G A B",
+      m:{nm:"c",  n:3, t:"♭", sig:["B♭","E♭","A♭"], lead:"B♭ → B♮", sc:"C D E♭ F G A♭ B"}},
+    {M:"G",  n:1, t:"♯", sig:["F♯"], sc:"G A B C D E F♯",
+      m:{nm:"g",  n:2, t:"♭", sig:["B♭","E♭"], lead:"F → F♯", sc:"G A B♭ C D E♭ F♯"}},
+    {M:"D",  n:2, t:"♯", sig:["F♯","C♯"], sc:"D E F♯ G A B C♯",
+      m:{nm:"d",  n:1, t:"♭", sig:["B♭"], lead:"C → C♯", sc:"D E F G A B♭ C♯"}},
+    {M:"A",  n:3, t:"♯", sig:["F♯","C♯","G♯"], sc:"A B C♯ D E F♯ G♯",
+      m:{nm:"a",  n:0, t:"",  sig:[], lead:"G → G♯", sc:"A B C D E F G♯"}},
+    {M:"E",  n:4, t:"♯", sig:["F♯","C♯","G♯","D♯"], sc:"E F♯ G♯ A B C♯ D♯",
+      m:{nm:"e",  n:1, t:"♯", sig:["F♯"], lead:"D → D♯", sc:"E F♯ G A B C D♯"}},
+    {M:"B",  n:5, t:"♯", sig:["F♯","C♯","G♯","D♯","A♯"], sc:"B C♯ D♯ E F♯ G♯ A♯",
+      m:{nm:"b",  n:2, t:"♯", sig:["F♯","C♯"], lead:"A → A♯", sc:"B C♯ D E F♯ G A♯"}},
+    {M:"F♯", n:6, t:"♯", sig:["F♯","C♯","G♯","D♯","A♯","E♯"], sc:"F♯ G♯ A♯ B C♯ D♯ E♯",
+      m:{nm:"f♯", n:3, t:"♯", sig:["F♯","C♯","G♯"], lead:"E → E♯", sc:"F♯ G♯ A B C♯ D E♯"}},
+    {M:"D♭", n:5, t:"♭", sig:["B♭","E♭","A♭","D♭","G♭"], sc:"D♭ E♭ F G♭ A♭ B♭ C",
+      m:{nm:"c♯", n:4, t:"♯", sig:["F♯","C♯","G♯","D♯"], lead:"B → B♯", sc:"C♯ D♯ E F♯ G♯ A B♯", enh:"d♭ 小調需要重降記號，改用同音異名的 c♯"}},
+    {M:"A♭", n:4, t:"♭", sig:["B♭","E♭","A♭","D♭"], sc:"A♭ B♭ C D♭ E♭ F G",
+      m:{nm:"g♯", n:5, t:"♯", sig:["F♯","C♯","G♯","D♯","A♯"], lead:"F♯ → F×（重升 F）", sc:"G♯ A♯ B C♯ D♯ E F×", enh:"a♭ 小調有七個降記號，改用同音異名的 g♯；× 是重升記號"}},
+    {M:"E♭", n:3, t:"♭", sig:["B♭","E♭","A♭"], sc:"E♭ F G A♭ B♭ C D",
+      m:{nm:"e♭", n:6, t:"♭", sig:["B♭","E♭","A♭","D♭","G♭","C♭"], lead:"D♭ → D♮", sc:"E♭ F G♭ A♭ B♭ C♭ D"}},
+    {M:"B♭", n:2, t:"♭", sig:["B♭","E♭"], sc:"B♭ C D E♭ F G A",
+      m:{nm:"b♭", n:5, t:"♭", sig:["B♭","E♭","A♭","D♭","G♭"], lead:"A♭ → A♮", sc:"B♭ C D♭ E♭ F G♭ A"}},
+    {M:"F",  n:1, t:"♭", sig:["B♭"], sc:"F G A B♭ C D E",
+      m:{nm:"f",  n:4, t:"♭", sig:["B♭","E♭","A♭","D♭"], lead:"E♭ → E♮", sc:"F G A♭ B♭ C D♭ E"}}
+  ];
+  var REL = {
+    "C": {nm:"a",  lead:"G → G♯", sc:"A B C D E F G♯"},
+    "G": {nm:"e",  lead:"D → D♯", sc:"E F♯ G A B C D♯"},
+    "D": {nm:"b",  lead:"A → A♯", sc:"B C♯ D E F♯ G A♯"},
+    "A": {nm:"f♯", lead:"E → E♯", sc:"F♯ G♯ A B C♯ D E♯"},
+    "E": {nm:"c♯", lead:"B → B♯", sc:"C♯ D♯ E F♯ G♯ A B♯"},
+    "B": {nm:"g♯", lead:"F♯ → F×（重升 F）", sc:"G♯ A♯ B C♯ D♯ E F×", enh:"× 是重升記號"},
+    "F♯":{nm:"d♯", lead:"C♯ → C×（重升 C）", sc:"D♯ E♯ F♯ G♯ A♯ B C×", enh:"× 是重升記號"},
+    "D♭":{nm:"b♭", lead:"A♭ → A♮", sc:"B♭ C D♭ E♭ F G♭ A"},
+    "A♭":{nm:"f",  lead:"E♭ → E♮", sc:"F G A♭ B♭ C D♭ E"},
+    "E♭":{nm:"c",  lead:"B♭ → B♮", sc:"C D E♭ F G A♭ B"},
+    "B♭":{nm:"g",  lead:"F → F♯", sc:"G A B♭ C D E♭ F♯"},
+    "F": {nm:"d",  lead:"C → C♯", sc:"D E F G A B♭ C♯"}
+  };
+  var allowed = load("keyCounts", {0:true,1:true,2:true,3:true,4:false,5:false,6:false});
+  var pairMode = load("pair", "rel");
+  var key, minor, minorOk;
+  function computeKey(){
+    var pool = KEYS.filter(function(k){ return allowed[k.n]; });
+    if(!pool.length) pool = KEYS;
+    key = pool[mod(dayNum, pool.length)];
+    if(pairMode === "rel"){
+      var r = REL[key.M];
+      minor = {nm:r.nm, n:key.n, t:key.t, sig:key.sig, lead:r.lead, sc:r.sc, enh:r.enh, rel:true};
+    } else {
+      minor = key.m;
+    }
+    minorOk = !!allowed[minor.n];
+  }
+  computeKey();
+  var evenDay = mod(dayNum,2) === 0;
+  var ARTIC = [["Staccato","舌頭輕短，想著 t"],["Legato tonguing","柔起音，想著 d，氣不斷"],["兩連兩吐","兩個連奏接兩個吐音"]];
+  var artic = ARTIC[mod(dayNum,3)];
+
+  var SPECIAL = {
+    1:{item:1, title:"長音 · 高音區弱奏", text:"高音區每個音的 pp 端特別注意 —— 弱奏時芯不能散、音準不能掉。這是你器材偏暖時最容易失守的地方。"},
+    2:{item:2, title:"泛音 · 實音對照", text:"對照步驟做滿：每個起點都要做到實音靠近泛音的音色，才換下一個起點。"},
+    3:{item:6, title:"節奏 · 附點↔三連音", text:"用出題機的「附點 ↔ 三連音」特訓模式，打開時已自動切換。這是最常見的節奏錯誤。", drill:true},
+    4:{item:4, title:"點舌 · Legato tonguing", text:"不管今天輪到哪種 articulation，額外加一輪全程 legato tonguing。氣不斷，舌頭只負責輕切。"},
+    5:{item:2, title:"超高音 · 短音反覆", text:"超高音加量：G → G♯ → A，每個音做到十次有八次乾淨再往上。累了就停。"},
+    6:{item:3, title:"模進 · 小調延伸", text:"和聲小調多做到 8–10 組；狀況好的話，試著用旋律小調跑幾組（上行升六、七音，下行還原）。"},
+    0:{item:5, title:"每週檢查日", text:"半音階配調音器跑一遍，記下固定偏的音；做完再錄音存檔。"}
+  };
+  var sp = SPECIAL[dow];
+  var chromOn = evenDay || dow === 0;
+
+  function sigText(o){ return o.n === 0 ? "沒有升降記號" : (o.n + " 個" + (o.t === "♯" ? "升" : "降") + "記號：" + o.sig.join(" ")); }
+  function renderKey(){
+    $("hKey").textContent = key.M + " 大調" + (minorOk ? " ＋ " + minor.nm + " 和聲小調" : "");
+    var h = '<div class="kx"><span class="tag">大調</span><span class="ksig">' + sigText(key) + '</span><span class="scl">' + key.sc + '</span></div>';
+    if(minorOk){
+      h += '<div class="kx"><span class="tag">小調</span><span class="ksig">' + sigText(minor) + '<span class="lead">　導音 ' + minor.lead + '</span></span><span class="scl">' + minor.sc + '</span></div>';
+      var pairNote = minor.rel
+        ? ("關係小調：和 " + key.M + " 大調同一個調號，從大調的第六音開始。")
+        : ("同主音小調：和 " + key.M + " 大調同一個主音，調號不同。");
+      h += '<p class="note-s">' + pairNote + (minor.enh ? minor.enh + "。" : "") + "導音升高是臨時記號，不會寫在調號裡。</p>";
+    } else {
+      h += '<div class="kx out"><span class="tag">小調</span><span class="ksig">' + minor.nm + ' 小調（' + sigText(minor) + '）超出目前範圍</span><span class="scl">今天第 3 項只練大調</span></div>';
+    }
+    $("keyInfo").innerHTML = h;
+  }
+  function renderKeyRange(){
+    var h = "", c;
+    for(c=0;c<=6;c++) h += '<button class="opt" data-c="'+c+'" aria-pressed="'+(allowed[c]?"true":"false")+'">'+(c===0?"無升降":c+" 個")+'</button>';
+    $("cntOpts").innerHTML = h;
+    var pool = KEYS.filter(function(k){ return allowed[k.n]; });
+    $("keyList").textContent = "目前輪替 " + pool.length + " 個大調：" + pool.map(function(k){ return k.M; }).join("、") + "。每天依五度圈順序換一個。" +
+      (pairMode === "rel" ? "關係小調和大調同調號，每天都會練到。" : "同主音小調若超出範圍，那天只練大調。");
+    document.querySelectorAll("#pairOpts .opt").forEach(function(b){ setPressed(b, b.dataset.p === pairMode); });
+    var on = []; for(c=0;c<=6;c++) if(allowed[c]) on.push(c === 0 ? "無" : String(c));
+    $("keySum").textContent = "調性範圍 · " + (on.length === 7 ? "全部 12 個調" : on.join("、") + " 個升降記號") + " · " + (pairMode === "rel" ? "關係小調" : "同主音小調");
+    document.querySelectorAll("#cntOpts .opt").forEach(function(b){
+      b.addEventListener("click", function(){
+        var cc = parseInt(b.dataset.c, 10);
+        if(allowed[cc]){
+          var test = {}; for(var k in allowed) test[k] = allowed[k]; test[cc] = false;
+          if(!KEYS.some(function(K){ return test[K.n]; })) return;
+        }
+        allowed[cc] = !allowed[cc]; save("keyCounts", allowed);
+        computeKey(); renderKey(); renderKeyRange(); renderItems();
+      });
+    });
+  }
+  document.querySelectorAll("#pairOpts .opt").forEach(function(b){
+    b.addEventListener("click", function(){
+      pairMode = b.dataset.p; save("pair", pairMode);
+      computeKey(); renderKey(); renderKeyRange(); renderItems();
+    });
+  });
+  renderKey();
+  renderKeyRange();
+  $("hSp").textContent = sp.title;
+  $("hSpSub").textContent = "第 " + sp.item + " 項加量 —— 詳見下方標示";
+
+  if(dow === 0){
+    var wb = $("weekBanner"); wb.hidden = false;
+    wb.innerHTML = "<b>今天是每週檢查日。</b>半音階配調音器跑一遍，並錄音存檔：低音 D 長音 → 高音 D 長音 → 一段音階。";
+  }
+  if(now.getDate() === 1){
+    var mb = $("monthBanner"); mb.hidden = false;
+    mb.innerHTML = "<b>今天是每月速度檢視日。</b>第 3、4、5 項的節拍器：上個月達標就 +4，常出錯就 -8。";
+  }
+
+  /* ============ 練習項目 ============ */
+  var ITEMS = [
+    { n:1, name:"長音 · Messa di voce", chips:["♩ = 60","每音 8–12 拍"], min:11, minR:7,
+      today:function(r){ return r ? "只做高音區 B♭5 – F♯6" : "高音區 B♭5 – F♯6 ＋ " + (evenDay ? "低音區 B♭3 – B♭4" : "中音區 B♭4 – B♭5"); },
+      how:'<p>每個音走完 <span class="mono">pp → ff → pp</span>，不要持平。這一項直接對應低音溫暖、高音集中。</p><ul><li><b>高音區每天固定</b>，另一區（低音／中音）隔天輪替</li><li><b>超高音不做長音</b>，移到第 2 項用短音反覆</li><li>每週一次開調音器跑一遍，記下固定偏的音</li></ul>' },
+    { n:2, name:"泛音 + 實音對照", chips:["不用節拍器"], min:9,
+      today:function(){ return "起點 B♭・B・C・C♯・D → 實音對照 → 超高音 G・G♯・A 短音反覆"; },
+      how:'<p>每個起點吹上去：基音 → 八度 → 八度 + 五度 → 兩個八度。</p><p><b>對照步驟：</b>泛音吹出後，立刻用正常指法吹同一個音，比較音色，再試著把實音吹得靠近泛音。少了這一步，泛音只是特技。</p><p><b>超高音短音反覆：</b>吹 2 拍 → 休 2 拍，重複約八次，每次都是全新的起音。超高音難在叫不叫得出來，不在撐得久。</p><ol><li>單音重複</li><li>從下面接：高音 F → 停 → 超高音 G；熟了改成直接連上去</li><li>來回連奏：高音 F ↔ 超高音 G，慢慢加快</li></ol><p><b>過關標準：</b>十次有八次乾淨再往上。<b style="color:var(--live)">每天五分鐘就夠，累了就停</b> —— 練過頭會養成咬緊的習慣。</p>' },
+    { n:3, name:"反覆音模進", chips:["♩ = 92","八分音符"], min:11, minR:6,
+      today:function(r){ return r ? ("只做 " + key.M + " 大調全音域") : (key.M + " 大調全音域" + (minorOk ? " ＋ " + minor.nm + " 和聲小調 5–6 組" : "（今日小調超出範圍，只練大調）")); },
+      how:'<p>音型：<span class="mono">1 2 3 4 5 4 3 2 1 2 1 2 3 4 3 4 5 4 5 4 3 2 3 2 1 2 3 4 5 4 3 2 1</span>，然後起始音進一個音。</p><p><b>推進路徑：</b>小調先做 5–6 組 → 順了擴到全音域 → 再改成大調日／小調日隔天輪替。</p>' },
+    { n:4, name:"點舌 · 分割階梯", chips:["♩ = 92"], min:7,
+      today:function(){ return "Articulation：" + artic[0] + "（" + artic[1] + "）"; },
+      how:'<p>從最低音起，全音域：<span class="mono">4分 ×2拍 → 8分 ×2拍 → 三連音 ×2拍 → 16分 ×2拍</span>。</p><p>Articulation 三天一輪：Staccato（t）· Legato tonguing（d）· 兩連兩吐。</p><p><b>Legato tonguing 是巴洛克的核心手段</b> —— 氣完全不中斷，舌頭只在流動中輕碰竹片。重點在「離開」，不在「碰」。</p>' },
+    { n:5, name:"全音域半音階", chips:["♩ = 92","八分音符","隔天"], min:8,
+      today:function(){ return !chromOn ? "今天休息，明天再做" : (dow === 0 ? "配調音器跑一遍，記下偏的音" : "照常做"); },
+      how:'<p>從 B♭ 起，上行 5 個半音再下行為一組：<span class="mono">B♭ B C C♯ D C♯ C B B♭</span>，起始音逐半音往上推，到頂之後反向下行。</p><p>C♯、G♯ 和需要側鍵的音最容易偏。</p>' },
+    { n:6, name:"節奏組合解讀", chips:["速度自訂"], min:7, rhythm:true,
+      today:function(){ return sp.item === 6 ? "附點 ↔ 三連音 對照特訓" : "隨機出題；節拍器試著往右推一階"; },
+      how:'<p>第 4 項練「分割的執行」，這一項練「組合的解讀」。</p><ul><li><b>先唱，再吹</b>；用單一音吹</li><li>吹完按播放對答案</li><li>節拍器：每拍 → 只響第 1 拍 → 反拍 → 後半拍</li><li>另一個素材：從正在練的曲子裡抽節奏型出來練</li></ul>' }
+  ];
+
+  var mode = load("mode", "full");
+  var doneKey = "done:" + ymd;
+  var done = load(doneKey, []);
+
+  function included(n){
+    if(mode === "15") return n === 1 || n === 2;
+    if(mode === "30"){
+      if(n === 1 || n === 2) return true;
+      var third = (sp.item === 1 || sp.item === 2) ? 3 : sp.item;
+      return n === third;
+    }
+    if(n === 5) return chromOn;
+    return true;
+  }
+  function reduced(n){
+    if(mode === "full") return false;
+    return n === 1 || n === 3;
+  }
+  function skipReason(n){
+    if(mode === "full" && n === 5 && !chromOn) return "隔天做";
+    return "時間不夠先跳過";
+  }
+
+  function renderItems(){
+    var h = "", total = 0, dn = 0, mins = 0;
+    ITEMS.forEach(function(it){
+      var inc = included(it.n), isSp = inc && sp.item === it.n, isDone = done.indexOf(it.n) >= 0, r = reduced(it.n);
+      if(inc){ total++; mins += r && it.minR ? it.minR : it.min; if(isDone) dn++; }
+      var cls = "item" + (isSp ? " sp" : "") + (!inc ? " skip" : "") + (isDone ? " done" : "");
+      var badge = !inc ? '<span class="badge skip">跳過 · ' + skipReason(it.n) + '</span>'
+                : isSp ? '<span class="badge sp">今日特訓</span>'
+                : '<span class="badge do">要做</span>';
+      h += '<li class="'+cls+'">';
+      h += '<input type="checkbox" class="chk" id="chk-'+it.n+'" data-n="'+it.n+'"'+(isDone?" checked":"")+' aria-label="'+it.name+' 完成">';
+      h += '<div><div class="it-head"><span class="it-num">'+String(it.n).padStart(2,"0")+'</span><label class="it-name" for="chk-'+it.n+'">'+it.name+'</label>'+badge+'</div>';
+      h += '<p class="it-today">'+it.today(r)+'</p>';
+      if(isSp) h += '<p class="it-sp"><b>特訓：</b>'+((sp.item === 3 && !minorOk) ? "今天的同主音小調超出範圍，改成大調全音域多跑一輪，節拍器 +4 試試。" : sp.text)+'</p>';
+      h += '<div class="chips">' + it.chips.map(function(c){ return '<span class="chip">'+c+'</span>'; }).join("") + '<span class="chip">約 '+(r && it.minR ? it.minR : it.min)+' 分</span></div>';
+      if(it.rhythm) h += '<div class="it-act"><button class="btn sm" id="goRhythm">打開節奏出題 →</button></div>';
+      h += '<details class="how"><summary>做法</summary><div class="how-body">'+it.how+'</div></details>';
+      h += '</div></li>';
+    });
+    $("items").innerHTML = h;
+    $("pDone").textContent = dn; $("pTotal").textContent = total; $("pMin").textContent = mins;
+    $("pBar").style.width = (total ? Math.round(dn/total*100) : 0) + "%";
+
+    document.querySelectorAll(".chk").forEach(function(c){
+      c.addEventListener("change", function(){
+        var n = parseInt(c.dataset.n,10), i = done.indexOf(n);
+        if(c.checked && i < 0) done.push(n);
+        if(!c.checked && i >= 0) done.splice(i,1);
+        save(doneKey, done); renderItems();
+      });
+    });
+    var go = $("goRhythm");
+    if(go) go.addEventListener("click", function(){
+      if(sp.drill) setDrill(true);
+      showView("rhythm");
+    });
+  }
+
+  document.querySelectorAll("#modeOpts .opt").forEach(function(b){
+    setPressed(b, b.dataset.m === mode);
+    b.addEventListener("click", function(){
+      mode = b.dataset.m; save("mode", mode);
+      document.querySelectorAll("#modeOpts .opt").forEach(function(o){ setPressed(o, o === b); });
+      renderItems();
+    });
+  });
+
+  /* ============ 分頁 ============ */
+  function showView(v){
+    $("view-today").hidden = v !== "today";
+    $("view-rhythm").hidden = v !== "rhythm";
+    $("tab-today").setAttribute("aria-selected", v === "today" ? "true" : "false");
+    $("tab-rhythm").setAttribute("aria-selected", v === "rhythm" ? "true" : "false");
+    save("tab", v);
+    if(v === "rhythm") drawScore();
+    window.scrollTo(0,0);
+  }
+  document.querySelectorAll(".tab").forEach(function(t){
+    t.addEventListener("click", function(){ showView(t.dataset.view); });
+  });
+
+  /* ============ 節奏：格庫 ============ */
+  var CELLS = [
+    {lv:1, fam:"basic", ev:[[4,0]]},
+    {lv:1, fam:"basic", ev:[[2,0],[2,0]]},
+    {lv:1, fam:"basic", ev:[[1,0],[1,0],[1,0],[1,0]]},
+    {lv:1, fam:"basic", ev:[[4,1]]},
+    {lv:1, fam:"basic", ev:[[2,1],[2,0]]},
+    {lv:1, fam:"basic", ev:[[2,0],[2,1]]},
+    {lv:2, fam:"dot",  ev:[[3,0],[1,0]]},
+    {lv:2, fam:"dot",  ev:[[1,0],[3,0]]},
+    {lv:2, fam:"mix",  ev:[[2,0],[1,0],[1,0]]},
+    {lv:2, fam:"mix",  ev:[[1,0],[1,0],[2,0]]},
+    {lv:2, fam:"mix",  ev:[[1,0],[2,0],[1,0]]},
+    {lv:2, fam:"mix",  ev:[[2,1],[1,0],[1,0]]},
+    {lv:2, fam:"mix",  ev:[[1,0],[1,0],[2,1]]},
+    {lv:2, fam:"mix",  ev:[[1,1],[1,0],[1,0],[1,0]]},
+    {lv:3, fam:"tri", tup:1, ev:[[4/3,0],[4/3,0],[4/3,0]]},
+    {lv:3, fam:"tri", tup:1, ev:[[4/3,1],[4/3,0],[4/3,0]]},
+    {lv:3, fam:"tri", tup:1, ev:[[4/3,0],[4/3,1],[4/3,0]]}
+  ];
+
+  /* ============ 節奏：繪譜 ============ */
+  var BEAT_W = 100, STAFF_Y = 72, BEAM_Y = 28, H = 100, PAD_L = 16, PAD_R = 14;
+  function beamCount(d){ return d <= 1.01 ? 2 : 1; }
+  function head(x){ return '<ellipse class="f" cx="'+x+'" cy="'+STAFF_Y+'" rx="5.6" ry="4.2" fill="var(--stave)" transform="rotate(-18 '+x+' '+STAFF_Y+')"/>'; }
+  function aug(x){ return '<circle class="f" cx="'+(x+10)+'" cy="'+(STAFF_Y-5)+'" r="1.9" fill="var(--stave)"/>'; }
+  function stem(x, top){ return '<line class="s" x1="'+(x+5.1)+'" y1="'+(STAFF_Y-2)+'" x2="'+(x+5.1)+'" y2="'+top+'" stroke="var(--stave)" stroke-width="1.7"/>'; }
+  function flag(x, n){
+    var s = "", bx = x + 5.1;
+    for(var i=0;i<n;i++){ var yy = BEAM_Y + i*8; s += '<path class="f" d="M '+bx+' '+yy+' q 9 4 9 13 q -3 -7 -9 -8 z" fill="var(--stave)"/>'; }
+    return s;
+  }
+  function beamBar(x1, x2, level){ return '<rect x="'+x1+'" y="'+(BEAM_Y + level*8.5)+'" width="'+(x2-x1)+'" height="5" fill="var(--stave)"/>'; }
+  function restGlyph(x, dur){
+    var y = STAFF_Y;
+    if(dur >= 3.5){
+      return '<path class="f" d="M '+(x-4)+' '+(y-15)+' q 6 5 2 10 q -6 4 -1 9 q -5 -1 -4 4 q 4 6 8 8 q -9 -2 -12 -7 q -2 -6 4 -9 q -6 -3 -1 -9 q 3 -4 4 -6 z" fill="var(--stave)"/>';
+    }
+    var n = dur <= 1.01 ? 2 : 1, s = '<line class="s" x1="'+(x+5)+'" y1="'+(y-13)+'" x2="'+(x-3)+'" y2="'+(y+9)+'" stroke="var(--stave)" stroke-width="1.7"/>';
+    for(var i=0;i<n;i++){
+      s += '<circle class="f" cx="'+(x-1.5)+'" cy="'+(y-11+i*8)+'" r="3" fill="var(--stave)"/>';
+      s += '<path class="s" d="M '+(x-1.5)+' '+(y-13.5+i*8)+' q 6 -1 7.5 2.5" fill="none" stroke="var(--stave)" stroke-width="1.6"/>';
+    }
+    return s;
+  }
+  function renderBeat(cell, beatX, evBase){
+    var s = "", inner = BEAT_W - 30, off = 0, pts = [];
+    cell.ev.forEach(function(e, k){ pts.push({x:beatX + 14 + (off/4)*inner, dur:e[0], rest:e[1], k:k}); off += e[0]; });
+    var groups = [], cur = [];
+    pts.forEach(function(p){
+      if(!p.rest && p.dur < 3.99) cur.push(p);
+      else { if(cur.length) groups.push(cur); cur = []; }
+    });
+    if(cur.length) groups.push(cur);
+    var single = {};
+    groups.forEach(function(g){ if(g.length === 1) single[g[0].k] = true; });
+
+    pts.forEach(function(p){
+      s += '<g class="ev" data-e="'+(evBase + p.k)+'">';
+      if(p.rest){ s += restGlyph(p.x, p.dur); }
+      else {
+        s += head(p.x);
+        if(Math.abs(p.dur - 3) < 0.01) s += aug(p.x);
+        s += stem(p.x, p.dur < 3.99 ? BEAM_Y : BEAM_Y + 4);
+        if(single[p.k]) s += flag(p.x, beamCount(p.dur));
+      }
+      s += '</g>';
+    });
+    groups.forEach(function(g){
+      if(g.length === 1) return;
+      s += beamBar(g[0].x + 4.3, g[g.length-1].x + 5.9, 0);
+      for(var i=0;i<g.length;i++){
+        if(beamCount(g[i].dur) < 2) continue;
+        var prevOk = i > 0 && beamCount(g[i-1].dur) === 2;
+        var nextOk = i < g.length-1 && beamCount(g[i+1].dur) === 2;
+        if(nextOk) s += beamBar(g[i].x + 4.3, g[i+1].x + 5.9, 1);
+        else if(!prevOk){
+          if(i > 0) s += beamBar(g[i].x - 3, g[i].x + 5.9, 1);
+          else s += beamBar(g[i].x + 4.3, g[i].x + 13, 1);
+        }
+      }
+    });
+    if(cell.tup){
+      var a = pts[0].x + 2, b = pts[pts.length-1].x + 9, mid = (a+b)/2;
+      s += '<g stroke="var(--stave)" stroke-width="1.3"><line x1="'+a+'" y1="14" x2="'+(mid-7)+'" y2="14"/><line x1="'+(mid+7)+'" y1="14" x2="'+b+'" y2="14"/><line x1="'+a+'" y1="14" x2="'+a+'" y2="19"/><line x1="'+b+'" y1="14" x2="'+b+'" y2="19"/></g>';
+      s += '<text x="'+mid+'" y="18" text-anchor="middle" font-family="DM Mono, monospace" font-size="12" fill="var(--stave)">3</text>';
+    }
+    return s;
+  }
+  function renderRow(rowCells, beatStart, barsInRow, isLast){
+    var W = PAD_L + barsInRow*4*BEAT_W + PAD_R;
+    var s = '<svg viewBox="0 0 '+W+' '+H+'" style="width:100%;max-width:'+Math.round(W*1.45)+'px" role="img" aria-label="節奏題目">';
+    s += '<line x1="'+PAD_L+'" y1="'+STAFF_Y+'" x2="'+(W-PAD_R)+'" y2="'+STAFF_Y+'" stroke="var(--line)" stroke-width="1.4"/>';
+    for(var b=0;b<=barsInRow;b++){
+      var bx = PAD_L + b*4*BEAT_W, last = isLast && b === barsInRow;
+      s += '<line x1="'+bx+'" y1="'+(STAFF_Y-16)+'" x2="'+bx+'" y2="'+(STAFF_Y+16)+'" stroke="var(--stave)" stroke-width="'+(last?3:1.5)+'"/>';
+      if(b < barsInRow){
+        var barNo = beatStart/4 + b + 1;
+        s += '<text x="'+(bx+1)+'" y="'+(STAFF_Y-22)+'" font-family="DM Mono, monospace" font-size="10" fill="var(--muted)">'+barNo+'</text>';
+      }
+    }
+    rowCells.forEach(function(c, j){
+      var bx = PAD_L + j*BEAT_W;
+      s += renderBeat(c, bx, beatEvBase[beatStart + j]);
+      s += '<text x="'+(bx+14)+'" y="96" font-family="DM Mono, monospace" font-size="10.5" fill="var(--muted)">'+((j%4)+1)+'</text>';
+    });
+    return s + '</svg>';
+  }
+
+  /* ============ 節奏：出題 ============ */
+  var levels = {1:true, 2:true, 3:false}, bars = 2, drill = false;
+  var cells = [], events = [], beatEvBase = [];
+  function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+
+  function generate(){
+    stopPlay();
+    var n = bars*4, i;
+    cells = [];
+    if(drill){
+      var dots = CELLS.filter(function(c){ return c.fam === "dot"; });
+      var tris = CELLS.filter(function(c){ return c.fam === "tri"; });
+      for(i=0;i<n;i++) cells.push(pick(i % 2 === 0 ? dots : tris));
+    } else {
+      var pool = CELLS.filter(function(c){ return levels[c.lv]; });
+      for(i=0;i<n;i++) cells.push(pick(pool));
+    }
+    events = []; beatEvBase = [];
+    cells.forEach(function(c, bi){
+      beatEvBase.push(events.length);
+      var off = 0;
+      c.ev.forEach(function(e){ events.push({start: bi + off/4, len: e[0]/4, rest: !!e[1]}); off += e[0]; });
+    });
+    drawScore();
+    $("sigLabel").textContent = "4/4 · " + bars + " 小節" + (drill ? " · 附點↔三連音" : "");
+  }
+  function perRow(){
+    var w = $("score").clientWidth || 360;
+    return (bars >= 2 && w >= 640) ? 2 : 1;
+  }
+  function drawScore(){
+    if(!cells.length || $("view-rhythm").hidden) return;
+    var per = Math.min(perRow(), bars), rows = bars / per, h = "";
+    for(var r=0;r<rows;r++){
+      var start = r*per*4;
+      h += renderRow(cells.slice(start, start + per*4), start, per, r === rows-1);
+    }
+    $("score").innerHTML = h;
+  }
+  var rsT = null;
+  window.addEventListener("resize", function(){ clearTimeout(rsT); rsT = setTimeout(drawScore, 150); });
+
+  function setDrill(v){ drill = v; setPressed($("drillBtn"), v); generate(); }
+
+  document.querySelectorAll("#lvOpts .opt").forEach(function(b){
+    b.addEventListener("click", function(){
+      var on = b.getAttribute("aria-pressed") === "true";
+      if(on && Object.keys(levels).filter(function(k){ return levels[k]; }).length === 1) return;
+      levels[b.dataset.lv] = !on; setPressed(b, !on);
+      if(drill){ drill = false; setPressed($("drillBtn"), false); }
+      generate();
+    });
+  });
+  document.querySelectorAll("#barOpts .opt").forEach(function(b){
+    b.addEventListener("click", function(){
+      bars = parseInt(b.dataset.bars, 10);
+      document.querySelectorAll("#barOpts .opt").forEach(function(o){ setPressed(o, o === b); });
+      generate();
+    });
+  });
+  $("drillBtn").addEventListener("click", function(){ setDrill(!drill); });
+  $("genBtn").addEventListener("click", generate);
+
+  /* ============ 音訊 ============ */
+  var ctx = null, bpm = 80;
+  function ensureCtx(){
+    if(!ctx){
+      var AC = window.AudioContext || window.webkitAudioContext;
+      if(!AC) return false;
+      ctx = new AC();
+    }
+    if(ctx.state === "suspended") ctx.resume();
+    return true;
+  }
+  var liveNodes = [];
+  function clickAt(time, accent, soft){
+    var o = ctx.createOscillator(), g = ctx.createGain(), peak = soft ? 0.12 : (accent ? 0.5 : 0.3);
+    o.frequency.value = accent ? 1400 : 900;
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(peak, time + 0.002);
+    g.gain.exponentialRampToValueAtTime(0.0001, time + 0.05);
+    o.connect(g); g.connect(ctx.destination);
+    o.start(time); o.stop(time + 0.07);
+    return o;
+  }
+  function toneAt(time, dur){
+    var o = ctx.createOscillator(), f = ctx.createBiquadFilter(), g = ctx.createGain();
+    o.type = "sawtooth"; o.frequency.value = 311.1;
+    f.type = "lowpass"; f.frequency.value = 1500; f.Q.value = 0.7;
+    var end = time + Math.max(0.05, dur);
+    g.gain.setValueAtTime(0.0001, time);
+    g.gain.exponentialRampToValueAtTime(0.26, time + 0.018);
+    g.gain.setValueAtTime(0.22, Math.max(time + 0.02, end - 0.03));
+    g.gain.exponentialRampToValueAtTime(0.0001, end);
+    o.connect(f); f.connect(g); g.connect(ctx.destination);
+    o.start(time); o.stop(end + 0.02);
+    return o;
+  }
+
+  /* ---- 播放正確節奏 ---- */
+  var playing = false, playTimers = [];
+  function later(fn, time){ playTimers.push(setTimeout(fn, Math.max(0, (time - ctx.currentTime)*1000))); }
+  function hl(i, on){ document.querySelectorAll('.ev[data-e="'+i+'"]').forEach(function(g){ g.classList.toggle("hot", on); }); }
+  function stopPlay(){
+    playTimers.forEach(clearTimeout); playTimers = [];
+    liveNodes.forEach(function(n){ try{ n.stop(0); }catch(e){} }); liveNodes = [];
+    document.querySelectorAll(".ev.hot").forEach(function(g){ g.classList.remove("hot"); });
+    playing = false;
+    $("playBtn").textContent = "▶ 播放正確節奏";
+    var st = $("playStatus"); st.textContent = "先自己吹，再對答案"; st.classList.remove("on");
+  }
+  function startPlay(){
+    if(!ensureCtx()){ $("playStatus").textContent = "這個瀏覽器無法播放音訊"; return; }
+    stopMet();
+    playing = true;
+    $("playBtn").textContent = "■ 停止";
+    var st = $("playStatus"); st.classList.add("on");
+    var spb = 60 / bpm, t0 = ctx.currentTime + 0.15, start = t0 + 4*spb, total = bars*4, withClick = $("playClick").checked;
+    for(var k=0;k<4;k++){
+      liveNodes.push(clickAt(t0 + k*spb, k === 0, false));
+      (function(k){ later(function(){ st.textContent = "預備 " + (k+1); }, t0 + k*spb); })(k);
+    }
+    later(function(){ st.textContent = "播放中"; }, start);
+    if(withClick) for(var b=0;b<total;b++) liveNodes.push(clickAt(start + b*spb, b % 4 === 0, true));
+    events.forEach(function(e, i){
+      var t = start + e.start*spb, len = e.len*spb;
+      if(!e.rest) liveNodes.push(toneAt(t, len*0.82));
+      later(function(){ hl(i, true); }, t);
+      later(function(){ hl(i, false); }, t + len*0.9);
+    });
+    later(stopPlay, start + total*spb + 0.1);
+  }
+  $("playBtn").addEventListener("click", function(){ playing ? stopPlay() : startPlay(); });
+
+  /* ---- 節拍器 ---- */
+  var metOn = false, metMode = "all", nextTime = 0, step = 0, metTimer = null;
+  var dotsEls = document.querySelectorAll("#dots .bd");
+  function shouldClick(i){
+    if(metMode === "all") return i % 2 === 0;
+    if(metMode === "one") return i === 0;
+    if(metMode === "back") return i === 2 || i === 6;
+    return i % 2 === 1;
+  }
+  function flash(i, time){
+    setTimeout(function(){
+      dotsEls.forEach(function(d, k){ d.classList.toggle("on", k === Math.floor(i/2)); });
+      setTimeout(function(){ dotsEls.forEach(function(d){ d.classList.remove("on"); }); }, 90);
+    }, Math.max(0, (time - ctx.currentTime)*1000));
+  }
+  function tick(){
+    var spe = 30 / bpm;
+    while(nextTime < ctx.currentTime + 0.12){
+      if(shouldClick(step)) clickAt(nextTime, step === 0, false);
+      if(step % 2 === 0) flash(step, nextTime);
+      nextTime += spe; step = (step + 1) % 8;
+    }
+  }
+  function startMet(){
+    if(!ensureCtx()) return;
+    stopPlay();
+    step = 0; nextTime = ctx.currentTime + 0.1;
+    metTimer = setInterval(tick, 25); metOn = true;
+    var b = $("metBtn"); b.textContent = "停止節拍器"; b.classList.remove("ghost"); b.classList.add("live");
+  }
+  function stopMet(){
+    clearInterval(metTimer); metTimer = null; metOn = false;
+    dotsEls.forEach(function(d){ d.classList.remove("on"); });
+    var b = $("metBtn"); b.textContent = "開始節拍器"; b.classList.add("ghost"); b.classList.remove("live");
+  }
+  $("metBtn").addEventListener("click", function(){ metOn ? stopMet() : startMet(); });
+  $("bpm").addEventListener("input", function(){
+    bpm = parseInt(this.value, 10); $("bpmNum").textContent = bpm; save("bpm", bpm);
+  });
+  document.querySelectorAll("#metOpts .opt").forEach(function(b){
+    b.addEventListener("click", function(){
+      metMode = b.dataset.mode;
+      document.querySelectorAll("#metOpts .opt").forEach(function(o){ setPressed(o, o === b); });
+    });
+  });
+
+  /* ============ 啟動 ============ */
+  bpm = load("bpm", 80); $("bpm").value = bpm; $("bpmNum").textContent = bpm;
+  renderItems();
+  generate();
+  showView(load("tab", "today") === "rhythm" ? "rhythm" : "today");
+})();
+</script>
+
+<script>
+  if ("serviceWorker" in navigator && /^https?:$/.test(location.protocol)) {
+    window.addEventListener("load", function(){ navigator.serviceWorker.register("sw.js").catch(function(){}); });
+  }
+</script>
+</body>
+</html>
