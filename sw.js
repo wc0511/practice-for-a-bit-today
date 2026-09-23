@@ -1,11 +1,12 @@
-
 /* 今天練一下（Practice for a bit today）service worker —— 更新網站檔案後，把下面的版本號 +1 */
-const CACHE = "practice-for-a-bit-today-v2";
+const CACHE = "practice-for-a-bit-today-v3";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
- 
+
 self.addEventListener("install", e => {
-  e.waitUntil(caches.open(CACHE).then(c => c.addAll(ASSETS)).then(() => self.skipWaiting()));
+  e.waitUntil(caches.open(CACHE)
+    .then(c => c.addAll(ASSETS.map(u => new Request(u, { cache: "reload" }))))
+    .then(() => self.skipWaiting()));
 });
 self.addEventListener("activate", e => {
   e.waitUntil(caches.keys()
@@ -18,10 +19,12 @@ self.addEventListener("fetch", e => {
   const url = new URL(req.url);
   const isFont = url.hostname === "fonts.googleapis.com" || url.hostname === "fonts.gstatic.com";
   if (url.origin !== location.origin && !isFont) return;
- 
+
+  /* 打開頁面時：一律先向網站確認最新版（略過瀏覽器暫存），沒有網路才用手機裡的備份 */
   if (req.mode === "navigate") {
-    e.respondWith(fetch(req).then(res => {
-      const copy = res.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); return res;
+    e.respondWith(fetch(req.url, { cache: "no-cache", credentials: "same-origin" }).then(res => {
+      if (res.ok) { const copy = res.clone(); caches.open(CACHE).then(c => c.put("./index.html", copy)); }
+      return res;
     }).catch(() => caches.match("./index.html")));
     return;
   }
@@ -33,4 +36,3 @@ self.addEventListener("fetch", e => {
     return hit || net;
   }));
 });
- 

@@ -182,6 +182,18 @@
   .note-s{font-size:14.5px;color:var(--muted);margin:0}
   #keyList{margin-top:10px}
 
+  /* ---------- drone ---------- */
+  .drone{margin-top:12px}
+  .drone-head{display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between}
+  .drone-info{display:block;font-size:15.5px;color:var(--muted);margin-top:2px}
+  .drone-info b{color:var(--ink);font-weight:800}
+  .drone-ctrl{display:flex;flex-wrap:wrap;gap:10px 18px;margin:14px 0 10px;align-items:center}
+  .vol{display:flex;align-items:center;gap:8px;font-size:14.5px;color:var(--muted);flex:1 1 180px;min-width:0}
+  .vol input[type=range]{flex:1;margin:0;accent-color:var(--accent)}
+  .bar-right{display:flex;align-items:center;gap:10px}
+  .drone-pill{font-family:var(--mono);font-size:13.5px;font-weight:500;padding:5px 11px;border-radius:999px;border:1px solid var(--live);background:var(--live-soft);color:var(--live);cursor:pointer;white-space:nowrap}
+  @media (max-width:719px){ .appbar.droning .date{display:none} }
+
   /* ---------- rhythm ---------- */
   .ctrl{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end}
   .grp{display:flex;flex-direction:column;gap:6px}
@@ -232,7 +244,7 @@
 <header class="appbar">
   <div class="appbar-in">
     <span class="brand-wrap"><span class="brand">今天<span>練一下</span></span><span class="brand-en">Practice for a bit today</span></span>
-    <span class="date" id="dateStr"></span>
+    <span class="bar-right"><button class="drone-pill" id="dronePill" hidden aria-label="停止持續音"></button><span class="date" id="dateStr"></span></span>
   </div>
 </header>
 
@@ -267,6 +279,36 @@
           <div class="bar"><i id="pBar"></i></div>
         </div>
       </div>
+    </div>
+
+    <div class="card drone" id="droneCard">
+      <div class="drone-head">
+        <div>
+          <span class="k">持續音 Drone</span>
+          <span class="drone-info" id="drInfo"></span>
+        </div>
+        <button class="btn live" id="drBtn">▶ 開始持續音</button>
+      </div>
+      <div class="drone-ctrl">
+        <div class="opts">
+          <button class="opt" id="drMajBtn" aria-pressed="true">大調主音</button>
+          <button class="opt" id="drMinBtn" aria-pressed="false">小調主音</button>
+        </div>
+        <div class="opts" id="drFifthOpts">
+          <button class="opt" data-f="0" aria-pressed="true">只有主音</button>
+          <button class="opt" data-f="1" aria-pressed="false">主音＋五度</button>
+        </div>
+        <div class="opts" id="drOctOpts">
+          <button class="opt" data-oct="low" aria-pressed="true">低音域</button>
+          <button class="opt" data-oct="mid" aria-pressed="false">中音域</button>
+        </div>
+        <div class="opts" id="drA4Opts">
+          <button class="opt" data-a4="440" aria-pressed="true">A = 440</button>
+          <button class="opt" data-a4="442" aria-pressed="false">A = 442</button>
+        </div>
+        <label class="vol" for="drVol">音量<input type="range" id="drVol" min="0.05" max="1" step="0.05" value="0.5"></label>
+      </div>
+      <p class="note-s">對著持續音吹長音或音階，注意聲音裡的「搖晃」（拍頻）：搖得越慢越接近，完全不晃就準了。建議搭配第 1 項長音和第 3 項模進。持續音會照今天的調自動換音，並已換算成次中音的實際發音。</p>
     </div>
 
     <details class="panel" id="keyPanel">
@@ -456,7 +498,7 @@
   };
   var allowed = load("keyCounts", {0:true,1:true,2:true,3:true,4:false,5:false,6:false});
   var pairMode = load("pair", "rel");
-  var key, minor, minorOk;
+  var key, minor, minorOk, dr;
   function computeKey(){
     var pool = KEYS.filter(function(k){ return allowed[k.n]; });
     if(!pool.length) pool = KEYS;
@@ -500,6 +542,7 @@
       h += '<div class="kx out"><span class="tag">小調</span><span class="ksig">' + minor.nm + ' 小調（' + sigText(minor) + '）超出目前範圍</span><span class="scl">今天第 3 項只練大調</span></div>';
     }
     $("keyInfo").innerHTML = h;
+    if(dr) droneApply();
   }
   function renderKeyRange(){
     var h = "", c;
@@ -937,6 +980,93 @@
       document.querySelectorAll("#metOpts .opt").forEach(function(o){ setPressed(o, o === b); });
     });
   });
+
+  /* ============ 持續音 ============ */
+  var LETTERS = "CDEFGAB", NAT = [0,2,4,5,7,9,11];
+  function accStr(a){ return a === 0 ? "" : a === 1 ? "♯" : a === -1 ? "♭" : a === 2 ? "×" : "♭♭"; }
+  function concertOf(nm){
+    var li = LETTERS.indexOf(nm.charAt(0).toUpperCase()), acc = 0;
+    if(nm.indexOf("♯") > 0) acc = 1;
+    if(nm.indexOf("♭") > 0) acc = -1;
+    var li2 = (li + 6) % 7, diff = (NAT[li] - NAT[li2] + 12) % 12, a2 = acc - (2 - diff);
+    return { name: LETTERS.charAt(li2) + accStr(a2), pc: (NAT[li2] + a2 + 12) % 12 };
+  }
+  dr = { which: load("drWhich","maj"), fifth: load("drFifth", false), oct: load("drOct","low"),
+         a4: load("drA4", 440), vol: load("drVol", 0.5), on: false, nodes: null };
+  function droneTarget(){
+    var useMin = dr.which === "min" && minorOk;
+    var written = useMin ? minor.nm : key.M;
+    var c = concertOf(written), base = 43;
+    var midi = base + ((c.pc - (base % 12)) + 12) % 12;
+    if(dr.oct === "mid") midi += 12;
+    return { written: written.charAt(0).toUpperCase() + written.slice(1), concert: c.name,
+             freq: dr.a4 * Math.pow(2, (midi - 69) / 12), useMin: useMin };
+  }
+  function droneStart(){
+    if(!ensureCtx()) return;
+    droneStop(true);
+    var t = droneTarget(), now = ctx.currentTime;
+    var master = ctx.createGain();
+    master.gain.setValueAtTime(0.0001, now);
+    master.gain.exponentialRampToValueAtTime(Math.max(0.0002, dr.vol * 0.35), now + 0.6);
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
+    lp.connect(master); master.connect(ctx.destination);
+    var oscs = [];
+    function voice(f, amp){
+      [[1,1],[2,0.4],[3,0.2],[4,0.1],[5,0.05]].forEach(function(h){
+        var o = ctx.createOscillator(), g = ctx.createGain();
+        o.type = "sine"; o.frequency.value = f * h[0]; g.gain.value = amp * h[1] * 0.5;
+        o.connect(g); g.connect(lp); o.start(now); oscs.push(o);
+      });
+    }
+    voice(t.freq, 1);
+    if(dr.fifth) voice(t.freq * 1.5, 0.55);
+    dr.nodes = { master: master, oscs: oscs }; dr.on = true;
+    droneUI();
+  }
+  function droneStop(quick){
+    if(dr.nodes){
+      var n = dr.nodes, now = ctx.currentTime, rel = quick ? 0.05 : 0.4;
+      n.master.gain.cancelScheduledValues(now);
+      n.master.gain.setValueAtTime(Math.max(0.0001, n.master.gain.value), now);
+      n.master.gain.exponentialRampToValueAtTime(0.0001, now + rel);
+      n.oscs.forEach(function(o){ try{ o.stop(now + rel + 0.05); }catch(e){} });
+    }
+    dr.nodes = null; dr.on = false;
+    droneUI();
+  }
+  function droneUI(){
+    var t = droneTarget(), mn = minor.nm.charAt(0).toUpperCase() + minor.nm.slice(1);
+    $("drMajBtn").textContent = "大調主音 " + key.M;
+    $("drMinBtn").textContent = "小調主音 " + mn;
+    $("drMinBtn").hidden = !minorOk;
+    setPressed($("drMajBtn"), !t.useMin); setPressed($("drMinBtn"), t.useMin);
+    document.querySelectorAll("#drFifthOpts .opt").forEach(function(b){ setPressed(b, (b.dataset.f === "1") === !!dr.fifth); });
+    document.querySelectorAll("#drOctOpts .opt").forEach(function(b){ setPressed(b, b.dataset.oct === dr.oct); });
+    document.querySelectorAll("#drA4Opts .opt").forEach(function(b){ setPressed(b, parseInt(b.dataset.a4,10) === dr.a4); });
+    $("drVol").value = dr.vol;
+    $("drInfo").innerHTML = "記譜 <b>" + t.written + "</b> · 實際發音 <b>" + t.concert + "</b>" + (dr.fifth ? " ＋ 五度" : "") + " · " + t.freq.toFixed(1) + " Hz";
+    var b = $("drBtn");
+    b.textContent = dr.on ? "■ 停止持續音" : "▶ 開始持續音";
+    b.classList.toggle("live", !dr.on);
+    var pill = $("dronePill");
+    pill.hidden = !dr.on;
+    pill.textContent = "♪ " + t.concert + "  ■";
+    document.querySelector(".appbar").classList.toggle("droning", dr.on);
+  }
+  function droneApply(){ if(dr.on) droneStart(); else droneUI(); }
+  $("drBtn").addEventListener("click", function(){ dr.on ? droneStop(false) : droneStart(); });
+  $("dronePill").addEventListener("click", function(){ droneStop(false); });
+  $("drMajBtn").addEventListener("click", function(){ dr.which = "maj"; save("drWhich","maj"); droneApply(); });
+  $("drMinBtn").addEventListener("click", function(){ dr.which = "min"; save("drWhich","min"); droneApply(); });
+  document.querySelectorAll("#drFifthOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.fifth = b.dataset.f === "1"; save("drFifth", dr.fifth); droneApply(); }); });
+  document.querySelectorAll("#drOctOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.oct = b.dataset.oct; save("drOct", dr.oct); droneApply(); }); });
+  document.querySelectorAll("#drA4Opts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.a4 = parseInt(b.dataset.a4,10); save("drA4", dr.a4); droneApply(); }); });
+  $("drVol").addEventListener("input", function(){
+    dr.vol = parseFloat(this.value); save("drVol", dr.vol);
+    if(dr.nodes) dr.nodes.master.gain.setTargetAtTime(Math.max(0.0002, dr.vol * 0.35), ctx.currentTime, 0.05);
+  });
+  droneUI();
 
   /* ============ 啟動 ============ */
   bpm = load("bpm", 80); $("bpm").value = bpm; $("bpmNum").textContent = bpm;
