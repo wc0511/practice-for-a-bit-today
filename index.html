@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="今天練一下（Practice for a bit today）—— 薩克斯風每日基本練習、節奏出題、抖音練習、小教室、節拍器與調音器">
+<meta name="description" content="今天練一下（Practice for a bit today）—— 薩克斯風每日基本練習、節奏樂透、抖音神曲、樂理小教室、節拍器與調音器">
 <meta name="theme-color" content="#E8ECE9" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#101412" media="(prefers-color-scheme: dark)">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -37,6 +37,12 @@
     --press:#131A17;
     --key-open:#FFFFFF;
     --key-line:#9AA8A0;
+    --sp-bg:#1F5140;
+    --sp-ink:#F2F6F3;
+    --sp-hl:#9FDCC2;
+    --sp-sub:#B9D3C7;
+    --sp-btn:#F2F6F3;
+    --sp-btn-ink:#1F5140;
 
     --sans:"Manrope","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
     --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -60,6 +66,12 @@
       --press:#E2E9E5;
       --key-open:#191F1C;
       --key-line:#5B6862;
+      --sp-bg:#101412;
+      --sp-ink:#E2E9E5;
+      --sp-hl:#6FBE9E;
+      --sp-sub:#87938C;
+      --sp-btn:#6FBE9E;
+      --sp-btn-ink:#101412;
     }
   }
   :root[data-theme="dark"]{
@@ -80,6 +92,12 @@
     --press:#E2E9E5;
     --key-open:#191F1C;
     --key-line:#5B6862;
+    --sp-bg:#101412;
+    --sp-ink:#E2E9E5;
+    --sp-hl:#6FBE9E;
+    --sp-sub:#87938C;
+    --sp-btn:#6FBE9E;
+    --sp-btn-ink:#101412;
   }
 
   *{box-sizing:border-box}
@@ -109,6 +127,8 @@
   .tab small{font-family:var(--mono);font-size:11.5px;letter-spacing:.12em;text-transform:uppercase;font-weight:500}
   .tab[aria-selected="true"]{color:var(--accent);border-top-color:var(--accent)}
   .tab:focus-visible{outline:2px solid var(--accent);outline-offset:-4px}
+  .tab{white-space:nowrap}
+  @media (max-width:420px){ .tab{font-size:14.5px} .tab small{font-size:10.5px;letter-spacing:.1em} }
 
   /* ---------- shared ---------- */
   .card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:16px}
@@ -211,7 +231,10 @@
   .ctrl{display:flex;flex-wrap:wrap;gap:14px 20px;align-items:flex-end}
   .grp{display:flex;flex-direction:column;gap:6px}
   .score-card{padding:12px 14px 14px}
-  .score-top{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:4px}
+  .score-top{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:8px}
+  .btn.gen{display:inline-flex;align-items:center;gap:6px}
+  .btn.gen svg{width:19px;height:19px;flex:0 0 auto;transition:transform .4s}
+  .btn.gen:active svg{transform:rotate(180deg)}
   .sig{font-family:var(--mono);font-size:14px;color:var(--muted)}
   .score{display:flex;flex-direction:column;gap:2px;align-items:center}
   .score svg{display:block;height:auto}
@@ -268,18 +291,52 @@
   .note .nh.w{color:var(--live)}
   .note svg{grid-column:2;grid-row:1 / span 2;align-self:center}
 
+  /* ---------- 首頁 ---------- */
+  .splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:24px 16px calc(16vh + env(safe-area-inset-bottom, 0px));background:var(--sp-bg);color:var(--sp-ink);text-align:center;will-change:transform}
+  .splash::before{content:"";position:absolute;left:0;right:0;bottom:calc(100% - 3px);height:40vh;background:var(--sp-bg)}
+  .splash.up{animation:spPull .56s forwards;box-shadow:0 18px 44px rgba(0,0,0,.3)}
+  @keyframes spPull{
+    0%{transform:translateY(0);animation-timing-function:cubic-bezier(.25,.7,.35,1)}
+    27%{transform:translateY(7vh);animation-timing-function:cubic-bezier(.6,0,.25,1)}
+    100%{transform:translateY(-100%)}
+  }
+  @keyframes spFade{to{opacity:0}}
+  .sp-title{font-weight:800;font-size:clamp(46px,13vw,84px);line-height:1.08;letter-spacing:-.02em;margin:0}
+  .sp-title span{color:var(--sp-hl)}
+  .sp-en{font-family:var(--mono);font-size:clamp(14px,4vw,19px);letter-spacing:.06em;color:var(--sp-sub);margin:14px 0 0}
+  .sp-btn{margin-top:clamp(40px,8vh,72px);font-family:inherit;font-size:21px;font-weight:800;letter-spacing:.04em;padding:16px 48px;border-radius:999px;border:0;
+    background:var(--sp-btn);color:var(--sp-btn-ink);cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.22);transition:transform .12s, filter .12s}
+  .sp-btn:hover{filter:brightness(1.05)}
+  .sp-btn:active{transform:scale(.96)}
+  .sp-btn:focus-visible{outline:3px solid var(--sp-hl);outline-offset:4px}
+  body.splash-on{overflow:hidden}
+  @media (prefers-reduced-motion:reduce){ .splash.up{animation:spFade .25s forwards} }
+
   /* ---------- 工具：節拍器・調音器 ---------- */
   .brand-wrap{min-width:0}
   .brand-en{overflow:hidden;text-overflow:ellipsis}
   .bar-right{flex:0 0 auto}
-  .tb{width:38px;height:38px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0;transition:transform .08s}
-  .tb svg{width:22px;height:22px}
+  .tb{height:38px;min-width:38px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);display:inline-flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;padding:0 8px;transition:transform .08s, box-shadow .15s;font-family:inherit}
+  .tb svg{width:22px;height:22px;flex:0 0 auto}
+  .tb .tbl{display:none;font-size:14px;font-weight:800;white-space:nowrap}
+  .tb:hover{filter:brightness(1.08)}
   .tb:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .tb.open{box-shadow:0 0 0 3px var(--accent-soft), 0 0 0 4px var(--accent)}
   .tb.on{background:var(--live);border-color:var(--live);color:var(--on-live)}
+  @media (min-width:720px){ .tb{padding:0 12px 0 10px} .tb .tbl{display:inline} }
+  @media (max-width:719px){ .tb{height:46px;min-width:46px;border-radius:12px;padding:0} .tb svg{width:27px;height:27px} .bar-right{gap:8px} }
   .tb.beat{transform:scale(.86)}
-  .hdate{display:none;letter-spacing:.04em}
+  .hdate{display:none;font-family:var(--mono);font-size:14px;color:var(--muted);white-space:nowrap}
+  .page-h{display:flex;flex-wrap:wrap;align-items:baseline;gap:2px 14px;margin:2px 0 12px}
+  .page-h .hdate{margin-left:auto}
+  .page-tag{font-size:15px;font-weight:700;color:var(--live);letter-spacing:.02em}
+  @media (max-width:560px){ .page-tag{flex-basis:100%;font-size:14.5px} }
+  .page-h h2{margin:0;font-size:27px;font-weight:800;letter-spacing:-.01em;line-height:1.2}
+  .page-h h2 small{font-family:var(--mono);font-size:12px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-left:10px}
+  @media (min-width:720px){ .page-h h2{font-size:30px} }
   @media (max-width:479px){ .appbar .date{display:none} .hdate{display:inline} }
-  @media (max-width:399px){ .brand-en{font-size:11px} .bar-right{gap:6px} }
+  @media (max-width:399px){ .brand-en{font-size:11px} }
   .tool-back{position:fixed;inset:0;z-index:18;background:rgba(10,14,12,.38)}
   body.tool-open .appbar{z-index:20}
   .tool{position:fixed;left:0;right:0;top:calc(var(--ab,57px) + env(safe-area-inset-top, 0px));z-index:19;max-height:calc(100dvh - var(--ab,57px) - var(--tab-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));overflow-y:auto;overscroll-behavior:contain}
@@ -313,7 +370,7 @@
   .tu-disp.ok .tu-cents{color:var(--accent)}
 
   /* ---------- 小教室 ---------- */
-  .subnav{position:sticky;top:var(--ab,57px);z-index:4;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin:-10px 0 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+  .subnav{position:sticky;top:var(--ab,57px);z-index:4;background:var(--bg);display:flex;gap:6px;overflow-x:auto;padding:10px 0;margin:-6px 0 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
   .subnav::-webkit-scrollbar{display:none}
   .subnav .opt{flex:0 0 auto}
   .clsec{padding-bottom:8px}
@@ -417,12 +474,18 @@
 </style>
 </head>
 <body>
+<div class="splash" id="splash" role="dialog" aria-label="今天練一下">
+  <h1 class="sp-title">今天<span>練一下</span>？</h1>
+  <p class="sp-en">Practice for a bit today?</p>
+  <button class="sp-btn" id="spGo">練一下</button>
+</div>
+
 <header class="appbar">
   <div class="appbar-in">
     <span class="brand-wrap"><span class="brand">今天<span>練一下</span></span><span class="brand-en">Practice for a bit today</span></span>
     <span class="bar-right"><button class="drone-pill" id="dronePill" hidden aria-label="停止持續音"></button><span class="date" id="dateStr"></span>
-      <button class="tb" id="tbMet" aria-label="節拍器" title="節拍器"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 21h7.6L13.4 3.5h-2.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 16.5 17.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16.6" cy="7.8" r="1.6" fill="currentColor"/><path d="M6.5 21h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg></button>
-      <button class="tb" id="tbTun" aria-label="調音器" title="調音器"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 2.5v7.5a3.5 3.5 0 0 0 7 0V2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13.5v8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg></button>
+      <button class="tb" id="tbMet" aria-label="節拍器" title="節拍器"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.2 21h7.6L13.4 3.5h-2.8z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><path d="M12 16.5 17.5 6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><circle cx="16.6" cy="7.8" r="1.6" fill="currentColor"/><path d="M6.5 21h11" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span class="tbl">節拍器</span></button>
+      <button class="tb" id="tbTun" aria-label="調音器" title="調音器"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8.5 2.5v7.5a3.5 3.5 0 0 0 7 0V2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12 13.5v8" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg><span class="tbl">調音器</span></button>
     </span>
   </div>
 </header>
@@ -489,10 +552,11 @@
 
   <!-- ================= 今日練習 ================= -->
   <section id="view-today">
+    <div class="page-h"><h2>今天練這些<small>Today</small></h2><span class="hdate" id="hDate"></span></div>
     <div class="hero">
       <div class="hero-grid">
         <div>
-          <span class="k">今日調性<span class="hdate" id="hDate"></span></span>
+          <span class="k">今日調性</span>
           <span class="hv" id="hKey">—</span>
           <div class="keyinfo" id="keyInfo"></div>
         </div>
@@ -596,6 +660,7 @@
 
   <!-- ================= 節奏出題 ================= -->
   <section id="view-rhythm" hidden>
+    <div class="page-h"><h2>節奏樂透<small>Rhythm</small></h2><span class="page-tag">有練有進步，路過別錯過</span></div>
     <div class="card">
       <div class="ctrl">
         <div class="grp">
@@ -618,13 +683,12 @@
           <span class="k">特訓</span>
           <div class="opts"><button class="opt" id="drillBtn" aria-pressed="false">附點 ↔ 三連音</button></div>
         </div>
-        <button class="btn" id="genBtn">重新出題</button>
       </div>
     </div>
 
     <div class="card score-card">
       <div class="score-top">
-        <span class="k" style="margin:0">題目</span>
+        <button class="btn gen" id="genBtn"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M 18.68 14.70 A 7.2 7.2 0 1 1 15.38 5.64" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"/><path d="M 18.56 7.33 L 16.45 2.36 L 13.25 8.36 Z" fill="currentColor" stroke="currentColor" stroke-width="0.8" stroke-linejoin="round"/></svg>重新出題</button>
         <span class="sig" id="sigLabel"></span>
       </div>
       <div class="score" id="score"></div>
@@ -670,6 +734,7 @@
 
   <!-- ================= 抖音練習 ================= -->
   <section id="view-vib" hidden>
+    <div class="page-h"><h2>抖音神曲<small>Vibrato</small></h2><span class="page-tag">抖音一響，觀眾鼓掌</span></div>
     <div class="card">
       <div class="vm-head">
         <div>
@@ -755,7 +820,8 @@
 
   <!-- ================= 小教室 ================= -->
   <section id="view-class" hidden>
-    <nav class="subnav" id="clNav" aria-label="小教室分類"></nav>
+    <div class="page-h"><h2>樂理小教室<small>Learn</small></h2></div>
+    <nav class="subnav" id="clNav" aria-label="樂理小教室分類"></nav>
     <div class="clsec" id="cl-keys" hidden></div>
     <div class="clsec" id="cl-terms" hidden></div>
     <div class="clsec" id="cl-symbols" hidden></div>
@@ -767,10 +833,10 @@
 
 <nav class="tabbar" aria-label="主選單">
   <div class="tabbar-in" role="tablist">
-    <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">今日練習<small>Today</small></button>
-    <button class="tab" role="tab" id="tab-rhythm" aria-selected="false" data-view="rhythm">節奏出題<small>Rhythm</small></button>
-    <button class="tab" role="tab" id="tab-vib" aria-selected="false" data-view="vib">抖音練習<small>Vibrato</small></button>
-    <button class="tab" role="tab" id="tab-class" aria-selected="false" data-view="class">小教室<small>Learn</small></button>
+    <button class="tab" role="tab" id="tab-today" aria-selected="true" data-view="today">今天練這些<small>Today</small></button>
+    <button class="tab" role="tab" id="tab-rhythm" aria-selected="false" data-view="rhythm">節奏樂透<small>Rhythm</small></button>
+    <button class="tab" role="tab" id="tab-vib" aria-selected="false" data-view="vib">抖音神曲<small>Vibrato</small></button>
+    <button class="tab" role="tab" id="tab-class" aria-selected="false" data-view="class">樂理小教室<small>Learn</small></button>
   </div>
 </nav>
 
@@ -801,7 +867,7 @@
   var dow = now.getDay();
   var WEEK = ["日","一","二","三","四","五","六"];
   $("dateStr").innerHTML = '<span class="yr">' + now.getFullYear() + ' / </span>' + ymd.slice(5).replace("-"," / ") + " · 週" + WEEK[dow];
-  $("hDate").textContent = " · " + (now.getMonth()+1) + "/" + now.getDate() + " 週" + WEEK[dow];
+  $("hDate").textContent = (now.getMonth()+1) + "/" + now.getDate() + " 週" + WEEK[dow];
 
   var KEYS = [
     {M:"C",  n:0, t:"",  sig:[], sc:"C D E F G A B",
@@ -2475,7 +2541,7 @@
      s:function(){ return msvg(mst(4,116) + [36,80].map(function(x){ return mnote(x, 4, "d", "q") + mpath("M "+(x-5)+" "+(my(4)-9)+" L "+x+" "+(my(4)-19)+" L "+(x+5)+" "+(my(4)-9), false, 1.8); }).join("")); }},
     {g:"運舌與奏法", n:"極短斷奏", en:"staccatissimo", d:"楔形記號。比斷奏更短、更尖銳。",
      s:function(){ return msvg(mst(4,116) + [36,80].map(function(x){ return mnote(x, 4, "d", "q") + mpath("M "+(x-2.4)+" "+(my(4)-17)+" L "+(x+2.4)+" "+(my(4)-17)+" L "+x+" "+(my(4)-9)+" z", true); }).join("")); }},
-    {g:"運舌與奏法", n:"兩連兩吐", en:"slur two, tongue two", d:"四個音裡前兩個圓滑、後兩個吐音。今日練習第 4 項的 articulation 之一，吐音的兩個音要和圓滑的一樣長。",
+    {g:"運舌與奏法", n:"兩連兩吐", en:"slur two, tongue two", d:"四個音裡前兩個圓滑、後兩個吐音。「今天練這些」第 4 項的 articulation 之一，吐音的兩個音要和圓滑的一樣長。",
      s:function(){ return msvg(mst(4,116) + mgroup([26,48,70,92], [2,3,4,5], 2) + arc(25, my(2)+8, 49, my(3)+8, false)); }},
     {g:"運舌與奏法", n:"延長記號", en:"fermata", d:"停在這個音（或休止）上延長，長度由演奏者或指揮決定，大約兩倍左右。",
      s:function(){ return msvg(mst(4,116) + mnote(60, 4, "d", "h") + mg(G.ferm, 60, my(4) - 13 + 20.7, FS, "middle")); }},
@@ -2799,7 +2865,7 @@
       {t:"50 Études faciles et progressives，第 1 冊（1–25 首）", a:"Guy Lacour", f:"短小、有旋律的法式練習曲，調性和節奏逐步變難。", u:"每首先慢練到完全沒錯，再慢慢接近標示速度。"}
     ]},
     {lv:"初中級", sub:"能吹完整個基本音域", items:[
-      {t:"Rubank Intermediate Method – Saxophone", a:"J. E. Skornicka", f:"延伸到更多調性，加入更多運舌變化與節奏型。", u:"搭配今日練習的音階，學到哪個調就練哪個調的練習曲。"},
+      {t:"Rubank Intermediate Method – Saxophone", a:"J. E. Skornicka", f:"延伸到更多調性，加入更多運舌變化與節奏型。", u:"搭配「今天練這些」的音階，學到哪個調就練哪個調的練習曲。"},
       {t:"50 Études faciles et progressives，第 2 冊（26–50 首）", a:"Guy Lacour", f:"延續第 1 冊，音域、速度和表情要求都提高。", u:"開始注意譜上的法文表情術語（見「音樂術語」的法文分類）。"},
       {t:"24 Études faciles（d'après A. Samie）", a:"Marcel Mule", f:"每首一個調，技巧和旋律兼顧，是進入 Ferling 之前的好橋梁。", u:"一週一首，錄音聽自己的音準和運舌是否平均。"}
     ]},
@@ -2809,7 +2875,7 @@
       {t:"Selected Studies for Saxophone", a:"H. Voxman", f:"涵蓋所有調的旋律型與技巧型練習曲，常被當成甄選指定曲。", u:"慢板練音色與樂句，快板練手指均勻度。"}
     ]},
     {lv:"中高級", sub:"準備挑戰完整獨奏曲", items:[
-      {t:"48 Études（Ferling／Mule 改編）", a:"W. F. Ferling", f:"慢板和快板兩兩成對，走遍所有大小調。慢板練音色、抖音與樂句；快板練技巧。原作是雙簧管練習曲 Op. 31。", u:"慢板配合抖音練習分頁一起練；快板先用節奏變化（附點、三連音）拆開練。", pd:"原作（雙簧管版）為公版"},
+      {t:"48 Études（Ferling／Mule 改編）", a:"W. F. Ferling", f:"慢板和快板兩兩成對，走遍所有大小調。慢板練音色、抖音與樂句；快板練技巧。原作是雙簧管練習曲 Op. 31。", u:"慢板配合「抖音神曲」分頁一起練；快板先用節奏變化（附點、三連音）拆開練。", pd:"原作（雙簧管版）為公版"},
       {t:"18 Exercices ou Études（d'après Berbiguier）", a:"Marcel Mule", f:"改編自長笛練習曲，大量快速音群與跨音域的連接。", u:"對手指均勻度和換把位很有幫助，適合和巴洛克作品一起練。"}
     ]},
     {lv:"進階", sub:"音樂院程度", items:[
@@ -2818,18 +2884,18 @@
       {t:"28 Études sur les modes à transpositions limitées d'O. Messiaen", a:"Guy Lacour", f:"以梅湘的有限移位調式寫成，練非傳統音階與讀譜能力。", u:"先把每首用到的調式音階單獨練熟。"}
     ]},
     {lv:"專項：超高音", sub:"基本音域穩定之後", items:[
-      {t:"Top-Tones for the Saxophone", a:"Sigurd Rascher", f:"從泛音練習建立超高音的經典教材，重點是口腔控制，不是背指法。", u:"和今日練習第 2 項（泛音＋實音對照）一起練。"},
+      {t:"Top-Tones for the Saxophone", a:"Sigurd Rascher", f:"從泛音練習建立超高音的經典教材，重點是口腔控制，不是背指法。", u:"和「今天練這些」第 2 項（泛音＋實音對照）一起練。"},
       {t:"Saxophone High Tones", a:"Eugene Rousseau", f:"系統整理超高音的指法與練習。", u:"指法因樂器而異，每個都要用調音器實測。"}
     ]},
     {lv:"專項：音階與基本功", sub:"任何程度都可以搭配", items:[
-      {t:"Les Gammes（conjointes et en intervalles）", a:"J.-M. Londeix", f:"每個調的音階用級進和各種音程形式練習。", u:"當作今日練習第 3 項的延伸素材。"},
+      {t:"Les Gammes（conjointes et en intervalles）", a:"J.-M. Londeix", f:"每個調的音階用級進和各種音程形式練習。", u:"當作「今天練這些」第 3 項的延伸素材。"},
       {t:"158 Saxophone Exercises", a:"Sigurd Rascher", f:"泛音、音色、音域連接的基本功練習。", u:"一次挑幾條，重質不重量。"},
       {t:"Daily Studies for the Improvement of the Saxophone Technic", a:"Larry Teal", f:"美國系統的每日技巧練習。", u:"和 Klosé 擇一當每日技巧素材即可。"}
     ]},
     {lv:"巴洛克作品", sub:"你正在練的方向", items:[
       {t:"12 Fantasias for Flute, TWV 40:2–13", a:"G. P. Telemann", f:"無伴奏長笛幻想曲，每首由幾個性格不同的段落組成。", u:"從第 2 號 a 小調開始。長笛的高音可以移低八度或移調。", pd:"公版，IMSLP 可找到原譜"},
       {t:"6 Cello Suites, BWV 1007–1012", a:"J. S. Bach", f:"大量琶音與隱藏的多聲部，練樂句、呼吸規劃和和聲感。", u:"從第 1 號 G 大調的前奏曲、小步舞曲開始。先把和弦（見「和弦」）認出來再練。", pd:"公版，IMSLP 可找到原譜"},
-      {t:"Arioso（清唱劇 BWV 156 序曲）", a:"J. S. Bach", f:"慢速長旋律，練長音、抖音的起伏和樂句的方向感。", u:"用抖音練習分頁的「漸入漸出」模式先練長音，再放進樂句。需要伴奏（鋼琴或伴奏音檔）。", pd:"公版"}
+      {t:"Arioso（清唱劇 BWV 156 序曲）", a:"J. S. Bach", f:"慢速長旋律，練長音、抖音的起伏和樂句的方向感。", u:"用「抖音神曲」分頁的「漸入漸出」模式先練長音，再放進樂句。需要伴奏（鋼琴或伴奏音檔）。", pd:"公版"}
     ]}
   ];
   function renderEtudes(){
@@ -2879,11 +2945,14 @@
   function closeTool(){
     toolOpen = false; $("tool").hidden = true; $("toolBack").hidden = true;
     tuStop(); document.body.classList.remove("tool-open");
+    tbOpenUI();
   }
+  function tbOpenUI(){ $("tbMet").classList.toggle("open", toolOpen && toolSeg === "met"); $("tbTun").classList.toggle("open", toolOpen && toolSeg === "tun"); }
   function setToolSeg(seg){
     toolSeg = seg; save("toolSeg", seg);
     document.querySelectorAll("#toolSeg .opt").forEach(function(b){ setPressed(b, b.dataset.t === seg); });
     $("toolMet").hidden = seg !== "met"; $("toolTun").hidden = seg !== "tun";
+    tbOpenUI();
     if(seg !== "tun") tuStop();
     if(seg === "tun") tuDraw();
   }
@@ -3109,6 +3178,35 @@
   bpm = load("bpm", 80); $("bpm").value = bpm; $("bpmNum").textContent = bpm;
   renderItems();
   generate();
+  (function(){
+    var sp = $("splash"), go = $("spGo");
+    if(!sp) return;
+    document.body.classList.add("splash-on");
+    try{ go.focus({preventScroll:true}); }catch(e){}
+    go.addEventListener("click", function(){
+      ensureCtx();
+      sp.classList.add("up");
+      document.body.classList.remove("splash-on");
+      var done = false;
+      function fin(){ if(done) return; done = true; sp.remove(); clSetTop(); }
+      sp.addEventListener("animationend", function(e){ if(e.target === sp) fin(); });
+      setTimeout(fin, 900);
+    });
+  })();
+  /* 日期改變時重新載入（會重新顯示首頁，並換成新一天的練習內容） */
+  (function(){
+    function dayKey(){ var d = new Date(); return d.getFullYear() + "-" + (d.getMonth()+1) + "-" + d.getDate(); }
+    var bootDay = dayKey();
+    function busy(){ return mt.on || vm.on || tu.on || dr.on || sc.listening || sc.playing || playing || metOn; }
+    function checkDay(resumed){
+      if(dayKey() === bootDay) return;
+      if(resumed || !busy()) location.reload();
+    }
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") checkDay(true); });
+    window.addEventListener("pageshow", function(e){ if(e.persisted) checkDay(true); });
+    window.addEventListener("focus", function(){ checkDay(true); });
+    setInterval(function(){ if(document.visibilityState === "visible") checkDay(false); }, 30000);
+  })();
   var tabSaved = load("tab", "today");
   showView(VIEWS.indexOf(tabSaved) >= 0 ? tabSaved : "today");
 })();
