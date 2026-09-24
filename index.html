@@ -47,6 +47,8 @@
     --sp-sub:#B9D3C7;
     --sp-btn:#F2F6F3;
     --sp-btn-ink:#1F5140;
+    --sp-go:#FFFFFF;
+    --sp-go-line:#101412;
 
     --sans:"Manrope","PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;
     --mono:"DM Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -304,19 +306,18 @@
   .note svg{grid-column:2;grid-row:1 / span 2;align-self:center}
 
   /* ---------- 視譜練習 ---------- */
-  .srlv{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px;margin-bottom:10px;max-width:560px}
+  .srlv{display:grid;grid-template-columns:repeat(9,minmax(0,1fr));gap:5px;margin-bottom:6px;max-width:560px}
   .srl{padding:7px 0;min-width:0;text-align:center;font-size:16px;font-weight:800}
   .srl small{font-size:11px;font-weight:700;margin-right:1px}
-  .sr-card{padding:8px 12px 12px;max-width:560px}
+  .sr-card{padding:6px 12px 12px;max-width:560px}
   .sr-top{display:flex;justify-content:space-between;align-items:center;gap:10px;height:32px}
   .sr-top .btn{padding-block:3px}
   /* 譜面固定縮放（--srk），高度依等級固定（--srh），換題時鍵盤不會跳動 */
-  .sr-stage{--srk:1.15;position:relative;min-height:calc(var(--srh, 132) * var(--srk) * 1px);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:2px 0}
+  .sr-stage{--srk:1.15;position:relative;min-height:max(88px, calc(var(--srh, 132) * var(--srk) * 1px));display:flex;flex-direction:column;align-items:center;justify-content:center;margin:2px 0}
   @media (min-width:700px) and (min-height:820px){ .sr-stage{--srk:1.4} }
   .stf.sr-svg{width:calc(var(--srw) * var(--srk) * 1px);height:calc(var(--srh) * var(--srk) * 1px);max-width:100%}
-  /* 還沒出題時只放等級說明：每一級都一樣高，不佔譜面的高度 */
-  .sr-stage.idle{min-height:0}
-  .sr-ready{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:88px;text-align:center;padding:4px 8px;color:var(--muted);font-size:14px;line-height:1.4}
+  /* 還沒出題時，等級說明疊在留給譜面的空間中間：文字長短不影響高度，鍵盤和「開始」都在出題時的位置 */
+  .sr-ready{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;text-align:center;padding:4px 8px;color:var(--muted);font-size:14px;line-height:1.4}
   .sr-ready b{font-size:20px;color:var(--ink)}
   .sr-slots{display:flex;justify-content:center;gap:6px;height:52px;margin:2px 0}
   .sr-slot{min-width:60px;padding:0 6px;border-radius:9px;border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:17px;line-height:1.15;white-space:nowrap}
@@ -326,7 +327,7 @@
   .sr-slot.cur{border-color:var(--accent);border-style:solid}
   .sr-slot.ok{border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent)}
   .sr-slot.bad{border:2px solid var(--live);background:var(--live-soft);color:var(--live)}
-  .sr-msg{text-align:center;font-weight:700;line-height:1.5;min-height:1.5em;margin:2px 0 6px;color:var(--muted)}
+  .sr-msg{text-align:center;font-weight:700;line-height:1.5;min-height:1.5em;margin:2px 0 4px;color:var(--muted)}
   .sr-msg.ok{color:var(--accent)}
   .sr-msg.bad{color:var(--live)}
   .sr-keys{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
@@ -348,7 +349,7 @@
   .pk.b:not(:disabled):active{background:var(--accent);color:var(--on-accent)}
   .pk:disabled{cursor:default}
   .pk:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
-  .sr-acts{display:flex;justify-content:center;gap:10px;margin-top:8px}
+  .sr-acts{display:flex;justify-content:center;gap:10px;margin-top:6px}
   .sr-acts .btn{min-width:8em}
 
   /* ---------- 收音音量表 ---------- */
@@ -373,14 +374,20 @@
   @keyframes spFade{to{opacity:0}}
   .sp-title{font-weight:800;font-size:clamp(46px,13vw,84px);line-height:1.08;letter-spacing:-.02em;margin:0}
   .sp-title span{color:var(--sp-hl)}
-  .sp-en{font-family:var(--mono);font-size:clamp(14px,4vw,19px);letter-spacing:.06em;color:var(--sp-sub);margin:14px 0 0}
-  .sp-btn{margin-top:clamp(40px,8vh,72px);font-family:inherit;font-size:21px;font-weight:800;letter-spacing:.04em;padding:16px 48px;border-radius:999px;border:0;
-    background:var(--sp-btn);color:var(--sp-btn-ink);cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.22);transition:transform .12s, filter .12s}
+  /* 按鈕的驚嘆號：首頁出現後抖一下（以底部為軸左右搖） */
+  .sp-bang{display:inline-block;font-style:normal;transform-origin:50% 85%;animation:spQ .4s ease-in-out .7s 1}
+  @keyframes spQ{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg)}30%{transform:rotate(11deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(5deg)}75%{transform:rotate(-2deg)}}
+  /* 英文副標：跟中文標題用同一組無襯線字體 */
+  .sp-en{font-family:var(--sans);font-weight:500;font-size:clamp(15px,4.2vw,20px);letter-spacing:.03em;color:var(--sp-sub);margin:14px 0 0}
+  /* 按鈕字：跟標題的中文同一套字型（蘋方／思源黑體／微軟正黑體），跳過 Manrope。
+     白字黑框：描邊先畫、字再蓋上去（paint-order），外框在字的外側，白色不會變細 */
+  .sp-btn{margin-top:clamp(40px,8vh,72px);font-family:"PingFang TC","Noto Sans TC","Microsoft JhengHei",system-ui,sans-serif;font-size:28px;font-weight:900;-webkit-text-stroke:5px var(--sp-go-line);paint-order:stroke fill;letter-spacing:.05em;line-height:1.2;padding:14px 54px;border-radius:999px;border:0;
+    background:var(--sp-btn);color:var(--sp-go);cursor:pointer;box-shadow:0 12px 28px rgba(0,0,0,.22);transition:transform .12s, filter .12s}
   .sp-btn:hover{filter:brightness(1.05)}
   .sp-btn:active{transform:scale(.96)}
   .sp-btn:focus-visible{outline:3px solid var(--sp-hl);outline-offset:4px}
   body.splash-on{overflow:hidden}
-  @media (prefers-reduced-motion:reduce){ .splash.up{animation:spFade .25s forwards} }
+  @media (prefers-reduced-motion:reduce){ .splash.up{animation:spFade .25s forwards} .sp-bang{animation:none} }
 
   /* ---------- 工具：節拍器・調音器 ---------- */
   .brand-wrap{min-width:0}
@@ -408,6 +415,22 @@
   @media (max-width:399px){ .brand-en{font-size:11px} }
   .tool-back{position:fixed;inset:0;z-index:18;background:rgba(10,14,12,.38)}
   body.tool-open .appbar{z-index:20}
+  /* 「今天練這些」以外的分頁：標題列不佔位置，只留右上角的工具按鈕（跟著頁面捲動） */
+  body.bare .appbar{position:absolute;left:0;right:0;background:none;border-bottom-color:transparent;pointer-events:none}
+  body.bare .brand-wrap{visibility:hidden}
+  body.bare .appbar .date{display:none}
+  body.bare .bar-right{position:relative;pointer-events:auto}
+  body.bare .appbar .drone-pill{position:absolute;right:0;top:calc(100% + 6px)}
+  body.bare .subnav{top:env(safe-area-inset-top, 0px)}
+  body.bare .page-h{margin-bottom:8px}
+  /* 小教室：標語那一行的右側放「發聲」切換；持續音的停止按鈕也移到這一行，不跟標題列的那顆重疊 */
+  .page-row2{flex:1 1 auto;min-width:0;display:flex;align-items:center;gap:8px}
+  .page-row2 .page-tag{flex:1 1 auto;min-width:0}
+  @media (max-width:560px){ .page-row2{flex-basis:100%;margin-top:8px} }          /* 手機：自己一行，往下避開右上角的工具按鈕 */
+  @media (min-width:561px){ body.bare .page-h{padding-right:112px} }              /* 寬畫面：跟標題同一行，右邊留給工具按鈕 */
+  @media (min-width:720px){ body.bare .page-h{padding-right:210px} }
+  .pm-btn{flex:0 0 auto;font-size:13.5px;padding:4px 10px}
+  body[data-view="class"] .appbar .drone-pill{display:none}
   .tool{position:fixed;left:0;right:0;top:calc(var(--ab,57px) + env(safe-area-inset-top, 0px));z-index:19;max-height:calc(100dvh - var(--ab,57px) - var(--tab-h) - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));overflow-y:auto;overscroll-behavior:contain}
   .tool-in{max-width:900px;margin:0 auto;background:var(--surface);border:1px solid var(--line);border-top:0;border-radius:0 0 16px 16px;padding:12px 16px 18px;box-shadow:0 14px 34px rgba(0,0,0,.18)}
   .tool-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:12px}
@@ -545,8 +568,8 @@
 <body>
 <div class="splash" id="splash" role="dialog" aria-label="今天練一下">
   <h1 class="sp-title">今天<span>練一下</span>？</h1>
-  <p class="sp-en">Practice for a bit today?</p>
-  <button class="sp-btn" id="spGo">練一下</button>
+  <p class="sp-en">Practice for a bit today</p>
+  <button class="sp-btn" id="spGo">Go<i class="sp-bang">!</i></button>
 </div>
 
 <header class="appbar">
@@ -898,7 +921,7 @@
 
   <!-- ================= 小教室 ================= -->
   <section id="view-class" hidden>
-    <div class="page-h"><h2>樂理小教室<small>Learn</small></h2><span class="page-tag">慘了，越看越有精神</span></div>
+    <div class="page-h"><h2>樂理小教室<small>Learn</small></h2><div class="page-row2"><span class="page-tag">慘了，越看越有精神</span><button class="drone-pill" id="clDrone" hidden aria-label="停止持續音"></button><button class="opt pm-btn" id="pmBtn" title="切換小教室的發聲：標準音（照譜上寫的音）或移調（你的薩克斯風實際發出的音）"></button></div></div>
     <nav class="subnav" id="clNav" aria-label="樂理小教室分類"></nav>
     <div class="clsec" id="cl-sight" hidden></div>
     <div class="clsec" id="cl-keys" hidden></div>
@@ -1167,6 +1190,8 @@
   /* ============ 分頁 ============ */
   var VIEWS = ["today","rhythm","vib","class"];
   function showView(v){
+    document.body.classList.toggle("bare", v !== "today");
+    document.body.dataset.view = v;
     VIEWS.forEach(function(n){
       $("view-"+n).hidden = v !== n;
       $("tab-"+n).setAttribute("aria-selected", v === n ? "true" : "false");
@@ -1603,9 +1628,10 @@
     var b = $("drBtn");
     b.textContent = dr.on ? "■ 停止持續音" : "▶ 開始持續音";
     b.classList.toggle("live", !dr.on);
-    var pill = $("dronePill");
-    pill.hidden = !dr.on;
-    pill.textContent = "♪ " + t.concert + "  ■";
+    [$("dronePill"), $("clDrone")].forEach(function(pill){
+      pill.hidden = !dr.on;
+      pill.textContent = "♪ " + t.concert + "  ■";
+    });
     document.querySelector(".appbar").classList.toggle("droning", dr.on);
     $("drNote").textContent = "對著持續音吹長音或音階，注意聲音裡的「搖晃」（拍頻）：搖得越慢越接近，完全不晃就準了。建議搭配第 1 項長音和第 3 項模進。持續音會照今天的調自動換音，並已換算成" + INS().zh + "薩克斯風的實際音高。用手機喇叭時選「響亮」，戴耳機或接音箱時可以選「柔和」。";
     instUI();
@@ -1614,6 +1640,7 @@
   function droneApply(){ if(dr.on) droneStart(); else droneUI(); }
   $("drBtn").addEventListener("click", function(){ dr.on ? droneStop(false) : droneStart(); });
   $("dronePill").addEventListener("click", function(){ droneStop(false); });
+  $("clDrone").addEventListener("click", function(){ droneStop(false); });
   $("drMajBtn").addEventListener("click", function(){ dr.which = "maj"; save("drWhich","maj"); droneApply(); });
   $("drMinBtn").addEventListener("click", function(){ dr.which = "min"; save("drWhich","min"); droneApply(); });
   document.querySelectorAll("#drFifthOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.fifth = b.dataset.f === "1"; save("drFifth", dr.fifth); droneApply(); }); });
@@ -2368,12 +2395,21 @@
   }
 
   /* ---------- 聲音（小教室共用）：以所選樂器的實際音高播放 ---------- */
-  function playNotes(list, opts){              // list: [{l,a,o}]；記譜音
+  /* 發聲模式（小教室右上角切換）：concert = 標準音，照譜上寫的音高；inst = 移調，換算成所選薩克斯風的實際音高。持續音不受影響 */
+  var pitchMode = load("pitchMode", "concert"); if(pitchMode !== "inst") pitchMode = "concert";
+  function pmUI(){
+    var b = $("pmBtn");
+    b.textContent = pitchMode === "inst" ? "發聲：移調" : "發聲：標準音";
+    setPressed(b, pitchMode === "inst");
+  }
+  $("pmBtn").addEventListener("click", function(){ pitchMode = pitchMode === "inst" ? "concert" : "inst"; save("pitchMode", pitchMode); pmUI(); });
+  pmUI();
+  function playNotes(list, opts){              // list: [{l,a,o}]；記譜音，依 pitchMode 決定要不要移調
     if(!ensureCtx()) return;
     opts = opts || {};
-    var t = ctx.currentTime + 0.05, dur = opts.dur || 0.42;
+    var t = ctx.currentTime + 0.05, dur = opts.dur || 0.42, off = pitchMode === "inst" ? INS().off : 0;
     function tone(midi, start, len, amp){
-      var f = dr.a4*Math.pow(2, (midi - INS().off - 69)/12);
+      var f = dr.a4*Math.pow(2, (midi - off - 69)/12);
       var o = ctx.createOscillator(), fl = ctx.createBiquadFilter(), g = ctx.createGain();
       o.type = "sawtooth"; o.frequency.value = f;
       fl.type = "lowpass"; fl.frequency.value = Math.min(4000, f*5); fl.Q.value = 0.6;
@@ -3165,6 +3201,8 @@
     var ink = SR_INK[L.n], hiY = yStep(44 + 4*SP, Math.max.apply(null, srPool(L).map(stepOf))) - (L.acc ? 16 : 4);
     return {top:Math.min(ink[0], hiY) - 6, H:ink[1] + 6};
   }
+  /* 譜面區 9 級統一用最高那一級的高度，題目在裡面置中：換等級時鍵盤不會移動 */
+  var SR_HMAX = Math.max.apply(null, SR_ORDER.map(function(k){ var b = srBox(SR_LV[k]); return b.H - b.top; }));
   /* 答案：唱名等級存字母（0–6），鋼琴鍵盤等級存音級（0–11，同音異名都算對） */
   function srRight(n, a){ return SR_LV[sr.lv].acc ? npc(n) === a : n.l === a; }
   function srAnsName(a){ return SR_LV[sr.lv].acc ? SR_PC[a] : SOLF[a]; }
@@ -3228,15 +3266,6 @@
     var st = sr.stats[sr.lv] || {ok:0, all:0}, best = sr.best[sr.lv] || 0;
     return "答對 " + st.ok + " / " + st.all + " · 連續 " + sr.streak + " · 最佳 " + best;
   }
-  /* 開始出題時，把等級列到鍵盤整段捲進畫面（放不下就從卡片頂端開始） */
-  function srFit(){
-    var card = $("srStage").closest(".sr-card"), lv = $("srLvs").getBoundingClientRect(), cd = card.getBoundingClientRect();
-    var ab = document.querySelector(".appbar").getBoundingClientRect().bottom, tb = document.querySelector(".tabbar").getBoundingClientRect().top;
-    var bot = $("srKeys").getBoundingClientRect().bottom + 64;       // 鍵盤下面還要放得下「下一題」按鈕
-    if(cd.top >= ab && bot <= tb) return;
-    var y = bot - lv.top <= tb - ab - 16 ? lv.top : cd.top;
-    window.scrollBy(0, y - ab - 8);
-  }
   function renderSight(){
     var el = $("cl-sight");
     var h = '<div class="srlv" id="srLvs" role="group" aria-label="等級">' + SR_ORDER.map(function(k){ return '<button class="opt srl" data-lv="'+k+'" aria-pressed="'+(k === sr.lv)+'" aria-label="'+SR_LV[k].zh+'"><small>Lv</small>'+k+'</button>'; }).join("") + '</div>';
@@ -3283,9 +3312,8 @@
   }
   function srIdle(){
     clearTimeout(sr.timer); sr.state = "idle"; sr.q = null; sr.ans = [];
-    var L = SR_LV[sr.lv], box = srBox(L);
-    $("srStage").style.setProperty("--srh", box.H - box.top);
-    $("srStage").classList.add("idle");
+    var L = SR_LV[sr.lv];
+    $("srStage").style.setProperty("--srh", SR_HMAX);
     $("srStage").innerHTML = '<div class="sr-ready"><b>' + L.zh + '</b><span>' + L.desc + '</span></div>';
     srSlots(); $("srMsg").textContent = ""; $("srMsg").className = "sr-msg";
     $("srGo").textContent = "開始"; $("srGo").hidden = false; $("srBack").hidden = true; $("srHear").hidden = true;
@@ -3298,9 +3326,7 @@
     sr.q = srMake(); sr.ans = []; sr.state = "show";
     $("srGo").hidden = true; $("srBack").hidden = true; $("srHear").hidden = true;
     $("srMsg").textContent = ""; $("srMsg").className = "sr-msg";
-    $("srStage").classList.remove("idle");
     $("srStage").innerHTML = srSVG(sr.q, L.dur, L.show > 0, srBox(L));
-    srFit();
     if(!L.show){ srAsk(); return; }
     srKeysOn(false); srSlots();
     var run = $("srStage").querySelector(".sr-run");
@@ -3340,15 +3366,16 @@
     }
     $("srSlots").innerHTML = h;
   }
-  /* 鋼琴鍵的回饋聲：固定在記譜的第 5 八度（C5–B5），跟題目的音高無關 */
+  /* 作答鍵的回饋聲（唱名鍵和鋼琴鍵都有），跟題目的音高無關。固定八度：標準音用中央 C 那一組（C4–B4）；
+     移調時用記譜的 C5–B5，換算後各種薩克斯風都落在中音域 */
   function srKeyTone(pc){
     var l = NATS.indexOf(pc), a = 0;
     if(l < 0){ l = NATS.indexOf(pc - 1); a = 1; }
-    playNotes([{l:l, a:a, o:5}], {dur:0.45});
+    playNotes([{l:l, a:a, o:pitchMode === "inst" ? 5 : 4}], {dur:0.45});
   }
   function srInput(l){
     if(sr.state !== "answer") return;
-    if(SR_LV[sr.lv].acc) srKeyTone(l);
+    srKeyTone(SR_LV[sr.lv].acc ? l : NATS[l]);          // 唱名鍵存的是字母，換成音級
     sr.ans.push(l); srSlots();
     if(sr.ans.length >= sr.q.length) srCheck();
   }
@@ -3372,7 +3399,7 @@
   var CL_SECS = [["sight","視譜練習"],["keys","調性"],["terms","音樂術語"],["symbols","樂譜符號"],["chords","和弦"],["fing","指法表"],["etudes","練習曲庫"]];
   var CL_RENDER = {sight:renderSight, keys:renderKeys, terms:renderTerms, symbols:renderSymbols, chords:renderChords, fing:renderFing, etudes:renderEtudes};
   var clSec = load("clSec", "keys"), clDone = {};
-  function clStickyH(){ var a = document.querySelector(".appbar"), n = $("clNav"); return (a ? a.offsetHeight : 0) + (n ? n.offsetHeight : 0); }
+  function clStickyH(){ var a = document.body.classList.contains("bare") ? null : document.querySelector(".appbar"), n = $("clNav"); return (a ? a.offsetHeight : 0) + (n ? n.offsetHeight : 0); }
   function clSetTop(){ var a = document.querySelector(".appbar"); document.documentElement.style.setProperty("--ab", (a ? a.offsetHeight : 57) + "px"); }
   function showClSec(sec, noScroll){
     if(!CL_RENDER[sec]) sec = "keys";
