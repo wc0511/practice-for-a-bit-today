@@ -375,8 +375,9 @@
   .sp-title{font-weight:800;font-size:clamp(46px,13vw,84px);line-height:1.08;letter-spacing:-.02em;margin:0}
   .sp-title span{color:var(--sp-hl)}
   /* 按鈕的驚嘆號：首頁出現後抖一下（以底部為軸左右搖） */
-  .sp-bang{display:inline-block;font-style:normal;transform-origin:50% 85%;animation:spQ .4s ease-in-out .7s 1}
-  @keyframes spQ{0%,100%{transform:rotate(0)}15%{transform:rotate(-14deg)}30%{transform:rotate(11deg)}45%{transform:rotate(-8deg)}60%{transform:rotate(5deg)}75%{transform:rotate(-2deg)}}
+  /* 一輪 3 秒：前 0.6 秒（20%）抖，其餘靜止；停在首頁時每 3 秒重播 */
+  .sp-bang{display:inline-block;font-style:normal;transform-origin:50% 85%;animation:spQ 3s ease-in-out .7s infinite}
+  @keyframes spQ{0%,20%,100%{transform:rotate(0)}3%{transform:rotate(-14deg)}6%{transform:rotate(11deg)}9%{transform:rotate(-8deg)}12%{transform:rotate(5deg)}15%{transform:rotate(-2deg)}}
   /* 英文副標：跟中文標題用同一組無襯線字體 */
   .sp-en{font-family:var(--sans);font-weight:500;font-size:clamp(15px,4.2vw,20px);letter-spacing:.03em;color:var(--sp-sub);margin:14px 0 0}
   /* 按鈕字：跟標題的中文同一套字型（蘋方／思源黑體／微軟正黑體），跳過 Manrope。
