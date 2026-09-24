@@ -1326,13 +1326,31 @@
 
   /* ============ 音訊 ============ */
   var ctx = null, bpm = 80;
+  /* iPhone：側邊靜音鍵打開時，網頁音效（Web Audio）預設會被靜音。
+     把音訊工作階段設成「播放」就能照常出聲；收音時改成「播放＋錄音」。 */
+  var iosUnlocked = false;
+  function micBusy(){ return (typeof tu !== "undefined" && (tu.on || tu.starting)) || (typeof sc !== "undefined" && (sc.listening || sc.starting)); }
+  function audioSessionFor(){
+    try{ if(navigator.audioSession) navigator.audioSession.type = micBusy() ? "play-and-record" : "playback"; }catch(e){}
+  }
+  function iosUnlock(){
+    if(iosUnlocked || navigator.audioSession) return;
+    iosUnlocked = true;
+    try{
+      var a = document.createElement("audio");
+      a.setAttribute("playsinline", ""); a.setAttribute("x-webkit-airplay", "deny");
+      a.preload = "auto"; a.src = "data:audio/wav;base64,UklGRkQDAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YSADAACAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgICAgA==";
+      var pr = a.play(); if(pr && pr.catch) pr.catch(function(){ iosUnlocked = false; });
+    }catch(e){ iosUnlocked = false; }
+  }
   function ensureCtx(){
+    audioSessionFor(); iosUnlock();
     if(!ctx){
       var AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return false;
       ctx = new AC();
     }
-    if(ctx.state === "suspended") ctx.resume();
+    if(ctx.state !== "running") ctx.resume();
     return true;
   }
   var liveNodes = [];
@@ -2033,7 +2051,7 @@
       scMsg("這個瀏覽器（或這個頁面）不能使用麥克風。請改用手機上的「今天練一下」網頁版。"); return;
     }
     if(!ensureCtx()){ scMsg("這個瀏覽器無法處理音訊。"); return; }
-    sc.starting = true; scUI();
+    sc.starting = true; scUI(); audioSessionFor();
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}}).then(function(stream){
       sc.starting = false;
       var extra = "";
@@ -2063,14 +2081,14 @@
       scMsg(extra || "收音中。吹 3–4 秒的長音，音與音之間稍微停一下。按「停止收音」後可以回放。");
       scUI(); kick();
     }).catch(function(err){
-      sc.starting = false; scUI();
+      sc.starting = false; scUI(); audioSessionFor();
       var nm = err && err.name;
       if(nm === "NotAllowedError" || nm === "SecurityError") scMsg("沒有取得麥克風權限。如果是在 claude.ai 上開的，這個頁面可能不允許使用麥克風，請改用手機上的「今天練一下」；如果已經是手機版，請到瀏覽器設定允許這個網站使用麥克風。");
       else if(nm === "NotFoundError") scMsg("找不到麥克風。");
       else scMsg("麥克風無法啟動（" + (nm || "未知錯誤") + "）。");
     });
   }
-  function scStopTracks(){ if(sc.stream){ sc.stream.getTracks().forEach(function(tr){ tr.stop(); }); sc.stream = null; } }
+  function scStopTracks(){ if(sc.stream){ sc.stream.getTracks().forEach(function(tr){ tr.stop(); }); sc.stream = null; } audioSessionFor(); }
   function scStop(){
     if(!sc.listening) return;
     sc.listening = false; clearTimeout(sc.stopTimer);
@@ -3373,7 +3391,7 @@
     if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){ tuMsg("這個瀏覽器（或這個頁面）不能使用麥克風。請改用手機上的「今天練一下」網頁版。"); return; }
     if(!ensureCtx()){ tuMsg("這個瀏覽器無法處理音訊。"); return; }
     scStop();
-    tu.starting = true; tuUI();
+    tu.starting = true; tuUI(); audioSessionFor();
     navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false, noiseSuppression:false, autoGainControl:false}}).then(function(stream){
       tu.starting = false;
       var extra = "";
@@ -3386,7 +3404,7 @@
       tuMsg(extra || "吹一個長音。指針在中間綠色區域（±5 cents）內就是準的。讀數常斷掉的話，把靈敏度調高，或把手機移近喇叭口一點。");
       kick();
     }).catch(function(err){
-      tu.starting = false; tuUI();
+      tu.starting = false; tuUI(); audioSessionFor();
       var nm = err && err.name;
       if(nm === "NotAllowedError" || nm === "SecurityError") tuMsg("沒有取得麥克風權限。如果是在 claude.ai 上開的，這個頁面可能不允許使用麥克風，請改用手機上的「今天練一下」；手機版請到瀏覽器設定允許麥克風。");
       else if(nm === "NotFoundError") tuMsg("找不到麥克風。");
@@ -3399,7 +3417,7 @@
     $("tuLvl").style.width = "0%"; $("tuLvl").classList.remove("on");
     try{ tu.src.disconnect(); }catch(e){}
     if(tu.stream){ tu.stream.getTracks().forEach(function(t){ t.stop(); }); tu.stream = null; }
-    tuUI(); tuDraw();
+    audioSessionFor(); tuUI(); tuDraw();
   }
   function tuProcess(){
     tu.an.getFloatTimeDomainData(tu.buf);
@@ -3521,7 +3539,7 @@
       if(dayKey() === bootDay) return;
       if(resumed || !busy()) location.reload();
     }
-    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible") checkDay(true); });
+    document.addEventListener("visibilitychange", function(){ if(document.visibilityState === "visible"){ checkDay(true); if(ctx && ctx.state !== "running" && (mt.on || dr.on || vm.on)) ctx.resume(); } });
     window.addEventListener("pageshow", function(e){ if(e.persisted) checkDay(true); });
     window.addEventListener("focus", function(){ checkDay(true); });
     setInterval(function(){ if(document.visibilityState === "visible") checkDay(false); }, 30000);
