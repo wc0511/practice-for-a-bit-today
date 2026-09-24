@@ -1,5 +1,5 @@
 /* 今天練一下（Practice for a bit today）service worker —— 更新網站檔案後，把下面的版本號 +1 */
-const CACHE = "practice-for-a-bit-today-v9";
+const CACHE = "practice-for-a-bit-today-v10";
 const ASSETS = ["./", "./index.html", "./manifest.webmanifest",
   "./icon-192.png", "./icon-512.png", "./icon-maskable-512.png", "./apple-touch-icon.png"];
 

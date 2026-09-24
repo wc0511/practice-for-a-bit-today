@@ -569,7 +569,7 @@
       </div>
       <div class="vm-ctrl">
         <label class="inl"><input type="checkbox" id="mtAcc" checked>第一拍重音</label>
-        <label class="vol" for="mtVol">音量<input type="range" id="mtVol" min="0.1" max="1" step="0.05" value="0.7"></label>
+        <label class="vol" for="mtVol">音量<input type="range" id="mtVol" min="0.05" max="1" step="0.05" value="0.8"></label>
       </div>
       <p class="note-s" style="margin-top:10px">關掉這個面板後節拍器會繼續響，右上角的圖示會跟著拍子閃；再點一次圖示就能回來停止。</p>
     </div>
@@ -654,7 +654,11 @@
           <button class="opt" data-a4="440" aria-pressed="true">A = 440</button>
           <button class="opt" data-a4="442" aria-pressed="false">A = 442</button>
         </div>
-        <label class="vol" for="drVol">音量<input type="range" id="drVol" min="0.05" max="1" step="0.05" value="0.5"></label>
+        <div class="opts" id="drToneOpts">
+          <button class="opt" data-tone="bright" aria-pressed="false">響亮（手機喇叭）</button>
+          <button class="opt" data-tone="soft" aria-pressed="false">柔和（耳機）</button>
+        </div>
+        <label class="vol" for="drVol">音量<input type="range" id="drVol" min="0.05" max="1" step="0.05" value="0.8"></label>
         <div class="opts instOpts" aria-label="樂器"><button class="opt" data-inst="sop">高音 B♭</button><button class="opt" data-inst="alto">中音 E♭</button><button class="opt" data-inst="tenor">次中音 B♭</button><button class="opt" data-inst="bari">上低音 E♭</button></div>
       </div>
       <p class="note-s" id="drNote"></p>
@@ -1343,12 +1347,27 @@
       var pr = a.play(); if(pr && pr.catch) pr.catch(function(){ iosUnlocked = false; });
     }catch(e){ iosUnlocked = false; }
   }
+  /* 音量拉桿 → 增益：以分貝（對數）對應，拉桿每一段聽起來的變化才平均。
+     拉滿 = 0 dB，一半 ≈ −18 dB，最左 ≈ −34 dB。 */
+  function volGain(pos){ return pos <= 0 ? 0 : Math.pow(10, -36*(1 - Math.min(1, pos))/20); }
+  /* 輸出總線：節拍器和持續音都經過一個限幅器再出去，音量開滿、兩個同時響也不會破音。 */
+  var outBus = null, noiseBuf = null;
+  function makeBus(){
+    var c = ctx.createDynamicsCompressor();
+    c.threshold.value = -4; c.knee.value = 0; c.ratio.value = 20;
+    c.attack.value = 0.002; c.release.value = 0.12;
+    c.connect(ctx.destination);
+    var len = Math.floor(ctx.sampleRate * 0.03), b = ctx.createBuffer(1, len, ctx.sampleRate), d = b.getChannelData(0);
+    for(var i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    outBus = c; noiseBuf = b;
+  }
   function ensureCtx(){
     audioSessionFor(); iosUnlock();
     if(!ctx){
       var AC = window.AudioContext || window.webkitAudioContext;
       if(!AC) return false;
       ctx = new AC();
+      makeBus();
     }
     if(ctx.state !== "running") ctx.resume();
     return true;
@@ -1472,7 +1491,24 @@
   }
 
   dr = { which: load("drWhich","maj"), fifth: load("drFifth", false), oct: load("drOct","low"),
-         a4: load("drA4", 440), vol: load("drVol", 0.5), on: false, nodes: null };
+         a4: load("drA4", 440), vol: load("drVol2", 0.8), on: false, nodes: null,
+         tone: load("drTone", (window.matchMedia && matchMedia("(pointer: coarse)").matches) ? "bright" : "soft") };
+  /* 音色：柔和＝基音為主（耳機、音箱）；響亮＝把能量移到 2–8 倍泛音，手機小喇叭發不出的低頻基音調小，
+     耳朵仍然會從泛音聽出同一個音高，但實際聽起來大聲很多。 */
+  var DR_TONES = {
+    soft:   { lp: 2400, h: [[1,.5],[2,.2],[3,.1],[4,.05],[5,.025]] },
+    bright: { lp: 4000, h: [[1,.35],[2,.6],[3,.7],[4,.55],[5,.42],[6,.3],[7,.2],[8,.13]] }
+  };
+  /* 算出波形峰值，讓拉滿時剛好接近上限（約 −2 dB） */
+  function drPeak(h, fifth){
+    var pk = 0, N = 4096;
+    for(var i = 0; i < N; i++){
+      var th = 4 * Math.PI * i / N, v = 0;
+      h.forEach(function(p){ v += p[1] * Math.sin(p[0] * th); if(fifth) v += 0.55 * p[1] * Math.sin(1.5 * p[0] * th); });
+      pk = Math.max(pk, Math.abs(v));
+    }
+    return pk;
+  }
   function droneTarget(){
     var useMin = dr.which === "min" && minorOk;
     var written = useMin ? minor.nm : key.M;
@@ -1486,16 +1522,17 @@
     if(!ensureCtx()) return;
     droneStop(true);
     var t = droneTarget(), now = ctx.currentTime;
+    var T = DR_TONES[dr.tone] || DR_TONES.soft, norm = 0.8 / drPeak(T.h, dr.fifth);
     var master = ctx.createGain();
     master.gain.setValueAtTime(0.0001, now);
-    master.gain.exponentialRampToValueAtTime(Math.max(0.0002, dr.vol * 0.35), now + 0.6);
-    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = 2400;
-    lp.connect(master); master.connect(ctx.destination);
+    master.gain.exponentialRampToValueAtTime(Math.max(0.0002, volGain(dr.vol)), now + 0.6);
+    var lp = ctx.createBiquadFilter(); lp.type = "lowpass"; lp.frequency.value = T.lp;
+    lp.connect(master); master.connect(outBus);
     var oscs = [];
     function voice(f, amp){
-      [[1,1],[2,0.4],[3,0.2],[4,0.1],[5,0.05]].forEach(function(h){
+      T.h.forEach(function(h){
         var o = ctx.createOscillator(), g = ctx.createGain();
-        o.type = "sine"; o.frequency.value = f * h[0]; g.gain.value = amp * h[1] * 0.5;
+        o.type = "sine"; o.frequency.value = f * h[0]; g.gain.value = amp * h[1] * norm;
         o.connect(g); g.connect(lp); o.start(now); oscs.push(o);
       });
     }
@@ -1524,6 +1561,7 @@
     document.querySelectorAll("#drFifthOpts .opt").forEach(function(b){ setPressed(b, (b.dataset.f === "1") === !!dr.fifth); });
     document.querySelectorAll("#drOctOpts .opt").forEach(function(b){ setPressed(b, b.dataset.oct === dr.oct); });
     document.querySelectorAll("#drA4Opts .opt").forEach(function(b){ setPressed(b, parseInt(b.dataset.a4,10) === dr.a4); });
+    document.querySelectorAll("#drToneOpts .opt").forEach(function(b){ setPressed(b, b.dataset.tone === dr.tone); });
     $("drVol").value = dr.vol;
     $("drInfo").innerHTML = "記譜 <b>" + t.written + "</b> · 實際發音 <b>" + t.concert + "</b>" + (dr.fifth ? " ＋ 五度" : "") + " · " + t.freq.toFixed(1) + " Hz";
     var b = $("drBtn");
@@ -1533,7 +1571,7 @@
     pill.hidden = !dr.on;
     pill.textContent = "♪ " + t.concert + "  ■";
     document.querySelector(".appbar").classList.toggle("droning", dr.on);
-    $("drNote").textContent = "對著持續音吹長音或音階，注意聲音裡的「搖晃」（拍頻）：搖得越慢越接近，完全不晃就準了。建議搭配第 1 項長音和第 3 項模進。持續音會照今天的調自動換音，並已換算成" + INS().zh + "薩克斯風的實際音高。";
+    $("drNote").textContent = "對著持續音吹長音或音階，注意聲音裡的「搖晃」（拍頻）：搖得越慢越接近，完全不晃就準了。建議搭配第 1 項長音和第 3 項模進。持續音會照今天的調自動換音，並已換算成" + INS().zh + "薩克斯風的實際音高。用手機喇叭時選「響亮」，戴耳機或接音箱時可以選「柔和」。";
     instUI();
   }
   function instUI(){ document.querySelectorAll(".instOpts .opt").forEach(function(b){ setPressed(b, b.dataset.inst === inst); }); }
@@ -1545,9 +1583,10 @@
   document.querySelectorAll("#drFifthOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.fifth = b.dataset.f === "1"; save("drFifth", dr.fifth); droneApply(); }); });
   document.querySelectorAll("#drOctOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.oct = b.dataset.oct; save("drOct", dr.oct); droneApply(); }); });
   document.querySelectorAll("#drA4Opts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.a4 = parseInt(b.dataset.a4,10); save("drA4", dr.a4); droneApply(); }); });
+  document.querySelectorAll("#drToneOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ dr.tone = b.dataset.tone; save("drTone", dr.tone); droneApply(); }); });
   $("drVol").addEventListener("input", function(){
-    dr.vol = parseFloat(this.value); save("drVol", dr.vol);
-    if(dr.nodes) dr.nodes.master.gain.setTargetAtTime(Math.max(0.0002, dr.vol * 0.35), ctx.currentTime, 0.05);
+    dr.vol = parseFloat(this.value); save("drVol2", dr.vol);
+    if(dr.nodes) dr.nodes.master.gain.setTargetAtTime(Math.max(0.0002, volGain(dr.vol)), ctx.currentTime, 0.05);
   });
   droneUI();
 
@@ -3285,21 +3324,30 @@
   document.addEventListener("keydown", function(e){ if(e.key === "Escape" && toolOpen) closeTool(); });
 
   /* ---------- 節拍器 ---------- */
-  var mt = { on:false, bpm:load("mtBpm", 80), beats:load("mtBeats", 4), sub:load("mtSub", 1), acc:load("mtAcc", true), vol:load("mtVol", 0.7),
+  var mt = { on:false, bpm:load("mtBpm", 80), beats:load("mtBeats", 4), sub:load("mtSub", 1), acc:load("mtAcc", true), vol:load("mtVol2", 0.8),
              next:0, beat:0, subi:0, timer:null, taps:[] };
   function tempoTerm(b){
     return b < 40 ? "Grave" : b < 60 ? "Largo" : b < 66 ? "Larghetto" : b < 76 ? "Adagio" : b < 108 ? "Andante" :
            b < 120 ? "Moderato" : b < 168 ? "Allegro" : b < 200 ? "Presto" : "Prestissimo";
   }
+  /* 木魚聲：兩個衰減的正弦（第二個是不和諧的高次振動模態）＋一小段帶通雜訊當「敲擊」瞬間，
+     高頻的敲擊感比較能穿過薩克斯風的聲音。 */
+  var MT_KIND = [ {f:1050, pk:0.45, d:0.05}, {f:1400, pk:1, d:0.11}, {f:1900, pk:1.15, d:0.12} ];
   function mtClick(time, kind){
-    var o = ctx.createOscillator(), g = ctx.createGain();
-    o.type = "triangle"; o.frequency.value = kind === 2 ? 1760 : kind === 1 ? 1175 : 830;
-    var peak = Math.max(0.0002, (kind === 2 ? 0.95 : kind === 1 ? 0.62 : 0.26) * mt.vol);
-    g.gain.setValueAtTime(0.0001, time);
-    g.gain.exponentialRampToValueAtTime(peak, time + 0.0015);
-    g.gain.exponentialRampToValueAtTime(0.0001, time + (kind === 0 ? 0.03 : 0.05));
-    o.connect(g); g.connect(ctx.destination);
-    o.start(time); o.stop(time + 0.07);
+    var P = MT_KIND[kind], out = ctx.createGain();
+    out.gain.value = volGain(mt.vol) * P.pk; out.connect(outBus);
+    [[1, 0.7, P.d], [2.76, 0.25, P.d * 0.45]].forEach(function(m){
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.type = "sine"; o.frequency.value = P.f * m[0];
+      g.gain.setValueAtTime(0.0001, time);
+      g.gain.exponentialRampToValueAtTime(m[1], time + 0.001);
+      g.gain.exponentialRampToValueAtTime(0.0001, time + m[2]);
+      o.connect(g); g.connect(out); o.start(time); o.stop(time + m[2] + 0.02);
+    });
+    var n = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+    n.buffer = noiseBuf; bp.type = "bandpass"; bp.frequency.value = 3200; bp.Q.value = 1.2;
+    ng.gain.setValueAtTime(0.5, time); ng.gain.exponentialRampToValueAtTime(0.0001, time + 0.015);
+    n.connect(bp); bp.connect(ng); ng.connect(out); n.start(time); n.stop(time + 0.025);
   }
   function mtFlash(beat, time){
     setTimeout(function(){
@@ -3370,7 +3418,7 @@
   document.querySelectorAll("#mtBeats .opt").forEach(function(b){ b.addEventListener("click", function(){ mt.beats = parseInt(b.dataset.b, 10); save("mtBeats", mt.beats); if(mt.beat >= mt.beats) mt.beat = 0; mtUI(); }); });
   document.querySelectorAll("#mtSubs .opt").forEach(function(b){ b.addEventListener("click", function(){ mt.sub = parseInt(b.dataset.s, 10); save("mtSub", mt.sub); mtUI(); }); });
   $("mtAcc").addEventListener("change", function(){ mt.acc = this.checked; save("mtAcc", mt.acc); mtDots(); });
-  $("mtVol").addEventListener("input", function(){ mt.vol = parseFloat(this.value); save("mtVol", mt.vol); });
+  $("mtVol").addEventListener("input", function(){ mt.vol = parseFloat(this.value); save("mtVol2", mt.vol); });
 
   /* ---------- 調音器 ---------- */
   var tu = { on:false, starting:false, stream:null, src:null, an:null, buf:null, P:null, hist:[], lastT:-9, sm:null, pend:null,
