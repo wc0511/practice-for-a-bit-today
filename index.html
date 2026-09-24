@@ -314,7 +314,9 @@
   .sr-stage{--srk:1.15;position:relative;min-height:calc(var(--srh, 132) * var(--srk) * 1px);display:flex;flex-direction:column;align-items:center;justify-content:center;margin:2px 0}
   @media (min-width:700px) and (min-height:820px){ .sr-stage{--srk:1.4} }
   .stf.sr-svg{width:calc(var(--srw) * var(--srk) * 1px);height:calc(var(--srh) * var(--srk) * 1px);max-width:100%}
-  .sr-ready{display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center;padding:4px 8px;color:var(--muted);font-size:14px;line-height:1.4}
+  /* 還沒出題時只放等級說明：每一級都一樣高，不佔譜面的高度 */
+  .sr-stage.idle{min-height:0}
+  .sr-ready{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:88px;text-align:center;padding:4px 8px;color:var(--muted);font-size:14px;line-height:1.4}
   .sr-ready b{font-size:20px;color:var(--ink)}
   .sr-slots{display:flex;justify-content:center;gap:6px;height:52px;margin:2px 0}
   .sr-slot{min-width:60px;padding:0 6px;border-radius:9px;border:2px dashed var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:17px;line-height:1.15;white-space:nowrap}
@@ -3283,6 +3285,7 @@
     clearTimeout(sr.timer); sr.state = "idle"; sr.q = null; sr.ans = [];
     var L = SR_LV[sr.lv], box = srBox(L);
     $("srStage").style.setProperty("--srh", box.H - box.top);
+    $("srStage").classList.add("idle");
     $("srStage").innerHTML = '<div class="sr-ready"><b>' + L.zh + '</b><span>' + L.desc + '</span></div>';
     srSlots(); $("srMsg").textContent = ""; $("srMsg").className = "sr-msg";
     $("srGo").textContent = "開始"; $("srGo").hidden = false; $("srBack").hidden = true; $("srHear").hidden = true;
@@ -3295,6 +3298,7 @@
     sr.q = srMake(); sr.ans = []; sr.state = "show";
     $("srGo").hidden = true; $("srBack").hidden = true; $("srHear").hidden = true;
     $("srMsg").textContent = ""; $("srMsg").className = "sr-msg";
+    $("srStage").classList.remove("idle");
     $("srStage").innerHTML = srSVG(sr.q, L.dur, L.show > 0, srBox(L));
     srFit();
     if(!L.show){ srAsk(); return; }
