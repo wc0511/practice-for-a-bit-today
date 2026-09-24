@@ -348,8 +348,6 @@
   .pk:focus-visible{outline:2px solid var(--accent);outline-offset:-3px}
   .sr-acts{display:flex;justify-content:center;gap:10px;margin-top:8px}
   .sr-acts .btn{min-width:8em}
-  .sr-hint{margin-top:10px}
-  @media (hover:none){ .sr-hint{display:none} }
 
   /* ---------- 收音音量表 ---------- */
   .lvl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 10px}
@@ -3158,10 +3156,12 @@
     return q;
   }
   function srName(n){ return SOLF[n.l] + (n.a === 1 ? "♯" : n.a === -1 ? "♭" : ""); }
-  /* 譜面的上下範圍：依這個等級的最高音留空間；單音沒有連桁，上下都可以收緊（上方留給高音譜號） */
+  /* 譜面的上下範圍 = 實際筆畫再留 6。SR_INK 是依音符數實測（每級抽 1200–2000 題）的最高／最低筆畫：
+     譜號、符桿、連桁、三連音的「3」；最高音的符頭和升降記號另外依這個等級的音域算。改了音域或畫法要重新量。 */
+  var SR_INK = {1:[34,90], 2:[12,104], 3:[4,124], 4:[4,110]};
   function srBox(L){
-    var hiY = yStep(44 + 4*SP, Math.max.apply(null, srPool(L).map(stepOf))) - 14;
-    return L.n === 1 ? {top:Math.min(20, hiY), H:104} : {top:Math.min(0, hiY), H:132};
+    var ink = SR_INK[L.n], hiY = yStep(44 + 4*SP, Math.max.apply(null, srPool(L).map(stepOf))) - (L.acc ? 16 : 4);
+    return {top:Math.min(ink[0], hiY) - 6, H:ink[1] + 6};
   }
   /* 答案：唱名等級存字母（0–6），鋼琴鍵盤等級存音級（0–11，同音異名都算對） */
   function srRight(n, a){ return SR_LV[sr.lv].acc ? npc(n) === a : n.l === a; }
@@ -3205,7 +3205,7 @@
       q.forEach(function(_, i){ g += '<line x1="'+sx(i)+'" y1="'+(ys[i] + (up ? -1 : 1))+'" x2="'+sx(i)+'" y2="'+(by(sx(i)) + shift)+'" stroke="var(--stave)" stroke-width="1.4"/>'; });
       var nb = dur === "16" ? 2 : 1;
       if(dur === "3"){
-        var mx = (xa + xz)/2, my3 = yA + dy/2 + shift + (up ? -7 : 17);
+        var mx = (xa + xz)/2, my3 = yA + dy/2 + shift + (up ? -7 : 15);
         g += '<text x="'+mx+'" y="'+my3+'" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-weight="700" font-size="13" fill="var(--stave)">3</text>';
       }
       for(var b=0;b<nb;b++){
@@ -3237,15 +3237,14 @@
   }
   function renderSight(){
     var el = $("cl-sight");
-    var h = '<h2 class="cl-h">視譜練習</h2><p class="cl-lede">等級 1、3、5 的音符會一直留著；其他等級在外框的跑條跑完後消失，再憑記憶作答。音名都是記譜音。</p>';
-    h += '<div class="srlv" id="srLvs" role="group" aria-label="等級">' + SR_ORDER.map(function(k){ return '<button class="opt srl" data-lv="'+k+'" aria-pressed="'+(k === sr.lv)+'" aria-label="'+SR_LV[k].zh+'"><small>Lv</small>'+k+'</button>'; }).join("") + '</div>';
+    var h = '<div class="srlv" id="srLvs" role="group" aria-label="等級">' + SR_ORDER.map(function(k){ return '<button class="opt srl" data-lv="'+k+'" aria-pressed="'+(k === sr.lv)+'" aria-label="'+SR_LV[k].zh+'"><small>Lv</small>'+k+'</button>'; }).join("") + '</div>';
     h += '<div class="card sr-card"><div class="sr-top"><span class="note-s" id="srStats"></span><button class="btn sm ghost" id="srHear" hidden>▶ 聽</button></div>';
     h += '<div class="sr-stage" id="srStage"></div>';
     h += '<div class="sr-slots" id="srSlots"></div>';
     h += '<div class="sr-msg" id="srMsg"></div>';
     h += '<div id="srKeys"></div>';
     h += '<div class="sr-acts"><button class="btn live" id="srGo">開始</button><button class="btn ghost" id="srBack" hidden>⌫ 刪除</button></div>';
-    h += '<p class="note-s sr-hint">電腦可以用鍵盤：1–7 對應 Do–Si（鋼琴鍵盤的等級按住 Shift 是升半音），Backspace 刪除，Enter 開始或下一題。</p></div>';
+    h += '</div>';
     el.innerHTML = h;
     el.querySelectorAll("#srLvs .srl").forEach(function(b){
       b.addEventListener("click", function(){
@@ -3337,8 +3336,15 @@
     }
     $("srSlots").innerHTML = h;
   }
+  /* 鋼琴鍵的回饋聲：固定在記譜的第 5 八度（C5–B5），跟題目的音高無關 */
+  function srKeyTone(pc){
+    var l = NATS.indexOf(pc), a = 0;
+    if(l < 0){ l = NATS.indexOf(pc - 1); a = 1; }
+    playNotes([{l:l, a:a, o:5}], {dur:0.45});
+  }
   function srInput(l){
     if(sr.state !== "answer") return;
+    if(SR_LV[sr.lv].acc) srKeyTone(l);
     sr.ans.push(l); srSlots();
     if(sr.ans.length >= sr.q.length) srCheck();
   }
@@ -3356,21 +3362,7 @@
     m.className = "sr-msg " + (ok ? "ok" : "bad");
     $("srGo").textContent = "下一題 →"; $("srGo").hidden = false; $("srBack").hidden = true; $("srHear").hidden = false;
     $("srStats").textContent = srStatsText();
-    try{ $("srGo").focus({preventScroll:true}); }catch(e){}
   }
-  document.addEventListener("keydown", function(e){
-    if($("view-class").hidden || $("cl-sight").hidden || toolOpen) return;
-    if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
-    var d = e.code && /^Digit[1-7]$/.test(e.code) ? parseInt(e.code.charAt(5), 10) : e.key >= "1" && e.key <= "7" ? parseInt(e.key, 10) : 0;
-    if(d){
-      var i = d - 1;
-      if(SR_LV[sr.lv].acc) srInput(NATS[i] + (e.shiftKey && [0,1,3,4,5].indexOf(i) >= 0 ? 1 : 0));
-      else srInput(i);
-      e.preventDefault();
-    }
-    else if(e.key === "Backspace"){ srBackspace(); e.preventDefault(); }
-    else if(e.key === "Enter" && (sr.state === "idle" || sr.state === "done")){ if(document.activeElement && document.activeElement.id !== "srGo") { srGoClick(); e.preventDefault(); } }
-  });
 
   /* ---------- 小教室：導覽 ---------- */
   var CL_SECS = [["sight","視譜練習"],["keys","調性"],["terms","音樂術語"],["symbols","樂譜符號"],["chords","和弦"],["fing","指法表"],["etudes","練習曲庫"]];
