@@ -291,6 +291,52 @@
   .note .nh.w{color:var(--live)}
   .note svg{grid-column:2;grid-row:1 / span 2;align-self:center}
 
+  /* ---------- 視譜練習 ---------- */
+  .srlv{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:8px;margin-bottom:12px}
+  .srl{display:flex;flex-direction:column;align-items:flex-start;gap:2px;text-align:left;white-space:normal;padding:9px 12px}
+  .srl b{font-size:16px}
+  .srl span{font-size:12.5px;font-weight:500;opacity:.8;line-height:1.35}
+  .sr-card{padding:12px 14px 14px}
+  .sr-top{display:flex;justify-content:space-between;align-items:center;gap:10px;min-height:36px}
+  .sr-stage{position:relative;min-height:150px;display:flex;flex-direction:column;align-items:center;justify-content:center;margin:4px 0}
+  .sr-svg{width:100%}
+  .sr-ready{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center;padding:24px 8px;color:var(--muted);font-size:15px}
+  .sr-ready b{font-size:24px;color:var(--ink)}
+  .sr-labs{display:flex;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:4px}
+  .sr-labs span{display:flex;flex-direction:column;align-items:center;min-width:60px;padding:6px 8px;border-radius:9px;border:1px solid var(--line);background:var(--surface-2)}
+  .sr-labs span.ok{border-color:var(--accent);background:var(--accent-soft)}
+  .sr-labs span.bad{border-color:var(--live);background:var(--live-soft)}
+  .sr-labs b{font-size:18px}
+  .sr-labs i{font-style:normal;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .sr-labs em{font-style:normal;font-size:12px;color:var(--live);font-weight:700}
+  .sr-slots{display:flex;justify-content:center;gap:8px;min-height:0;margin:6px 0}
+  .sr-slots:empty{display:none}
+  .sr-slot{width:58px;height:40px;border-radius:9px;border:2px dashed var(--line);display:grid;place-items:center;font-weight:800;font-size:17px}
+  .sr-slot.cur{border-color:var(--accent);border-style:solid}
+  .sr-slot.ok{border:2px solid var(--accent);background:var(--accent-soft);color:var(--accent)}
+  .sr-slot.bad{border:2px solid var(--live);background:var(--live-soft);color:var(--live)}
+  .sr-msg{text-align:center;font-weight:700;min-height:1.6em;margin:4px 0 8px;color:var(--muted)}
+  .sr-msg.ok{color:var(--accent)}
+  .sr-msg.bad{color:var(--live)}
+  .sr-keys{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:6px}
+  .srk{display:flex;flex-direction:column;align-items:center;gap:0;padding:10px 0 8px;border-radius:10px;border:1px solid var(--accent);background:var(--accent);color:var(--on-accent);font-family:inherit;cursor:pointer;min-width:0}
+  .srk b{font-size:17px;font-weight:800}
+  .srk span{font-family:var(--mono);font-size:11px;opacity:.75}
+  .srk:disabled{background:var(--surface-2);border-color:var(--line);color:var(--muted);cursor:default}
+  .srk:not(:disabled):active{transform:scale(.95)}
+  .srk:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+  .sr-acts{display:flex;justify-content:center;gap:10px;margin-top:12px}
+  .sr-acts .btn{min-width:8em}
+
+  /* ---------- 收音音量表 ---------- */
+  .lvl{display:flex;flex-wrap:wrap;align-items:center;gap:8px 12px;margin:12px 0 10px}
+  .lvl .k{margin:0}
+  .lvl-bar{position:relative;flex:1 1 160px;min-width:120px;height:10px;border-radius:5px;background:var(--surface-2);border:1px solid var(--line);overflow:hidden}
+  .lvl-bar i{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--muted);opacity:.55;transition:width .06s linear}
+  .lvl-bar i.on{background:var(--accent);opacity:1}
+  .lvl-bar b{position:absolute;top:-1px;bottom:-1px;width:2px;background:var(--live);left:0}
+  .sensOpts .opt{padding:5px 11px}
+
   /* ---------- 首頁 ---------- */
   .splash{position:fixed;inset:0;z-index:100;display:flex;flex-direction:column;align-items:center;justify-content:center;
     padding:24px 16px calc(16vh + env(safe-area-inset-bottom, 0px));background:var(--sp-bg);color:var(--sp-ink);text-align:center;will-change:transform}
@@ -535,6 +581,7 @@
         <div class="opts" id="tuA4"><button class="opt" data-a="440">A = 440</button><button class="opt" data-a="442">A = 442</button></div>
         <div class="opts instOpts" aria-label="樂器"><button class="opt" data-inst="sop">高音 B♭</button><button class="opt" data-inst="alto">中音 E♭</button><button class="opt" data-inst="tenor">次中音 B♭</button><button class="opt" data-inst="bari">上低音 E♭</button></div>
       </div>
+      <div class="lvl"><span class="k">收音音量</span><div class="lvl-bar"><i id="tuLvl"></i><b id="tuGate"></b></div><div class="opts sensOpts" aria-label="靈敏度"><span class="k" style="margin:0 2px 0 0;align-self:center">靈敏度</span><button class="opt" data-sens="low">低</button><button class="opt" data-sens="mid">中</button><button class="opt" data-sens="high">高</button></div></div>
       <div class="tu-disp idle" id="tuDisp">
         <div class="tu-note" id="tuNote">—</div>
         <div class="tu-sub" id="tuSub">按「開始收音」</div>
@@ -552,7 +599,7 @@
 
   <!-- ================= 今日練習 ================= -->
   <section id="view-today">
-    <div class="page-h"><h2>今天練這些<small>Today</small></h2><span class="hdate" id="hDate"></span></div>
+    <div class="page-h"><h2>今天練這些<small>Today</small></h2><span class="hdate" id="hDate"></span><span class="page-tag">有練有進步，路過別錯過</span></div>
     <div class="hero">
       <div class="hero-grid">
         <div>
@@ -660,7 +707,7 @@
 
   <!-- ================= 節奏出題 ================= -->
   <section id="view-rhythm" hidden>
-    <div class="page-h"><h2>節奏樂透<small>Rhythm</small></h2><span class="page-tag">有練有進步，路過別錯過</span></div>
+    <div class="page-h"><h2>節奏樂透<small>Rhythm</small></h2><span class="page-tag">運氣也是一種實力</span></div>
     <div class="card">
       <div class="ctrl">
         <div class="grp">
@@ -785,6 +832,7 @@
         </div>
         <button class="btn live" id="scBtn">● 開始收音</button>
       </div>
+      <div class="lvl"><span class="k">收音音量</span><div class="lvl-bar"><i id="scLvl"></i><b id="scGate"></b></div><div class="opts sensOpts" aria-label="靈敏度"><span class="k" style="margin:0 2px 0 0;align-self:center">靈敏度</span><button class="opt" data-sens="low">低</button><button class="opt" data-sens="mid">中</button><button class="opt" data-sens="high">高</button></div></div>
       <canvas class="vcan" id="scCanvas" style="height:210px" role="img" aria-label="音高起伏曲線"></canvas>
       <div class="metrics">
         <div class="mt" id="mtRate"><span>速度</span><b>—</b></div>
@@ -820,8 +868,9 @@
 
   <!-- ================= 小教室 ================= -->
   <section id="view-class" hidden>
-    <div class="page-h"><h2>樂理小教室<small>Learn</small></h2></div>
+    <div class="page-h"><h2>樂理小教室<small>Learn</small></h2><span class="page-tag">慘了，越看越有精神</span></div>
     <nav class="subnav" id="clNav" aria-label="樂理小教室分類"></nav>
+    <div class="clsec" id="cl-sight" hidden></div>
     <div class="clsec" id="cl-keys" hidden></div>
     <div class="clsec" id="cl-terms" hidden></div>
     <div class="clsec" id="cl-symbols" hidden></div>
@@ -1777,6 +1826,51 @@
              rec:null, chunks:[], recOffset:0, blobUrl:null, audio:null, playing:false,
              reviewT:0, maxT:0, stopTimer:null, shown:null };
   var yD = null, yC = null;
+  /* ---------- 音高偵測：McLeod（NSDF）＋降取樣，搭配會自動適應環境雜音的門檻 ---------- */
+  var MIC_SENS = { high:{floor:0.0005, clar:0.70}, mid:{floor:0.0015, clar:0.78}, low:{floor:0.004, clar:0.86} };
+  var micSens = load("micSens", "high"); if(!MIC_SENS[micSens]) micSens = "high";
+  function detParams(sr, len, fmin, fmax){
+    var ds = sr > 30000 ? 2 : 1, dsr = sr/ds, maxLag = Math.floor(dsr/fmin), minLag = Math.max(2, Math.floor(dsr/fmax));
+    var W = Math.max(256, Math.min(1024, Math.floor(len/ds) - maxLag)), need = (W + maxLag)*ds;
+    return {sr:sr, ds:ds, dsr:dsr, maxLag:maxLag, minLag:minLag, W:W, need:need, off:len - need, win:need,
+            x:new Float32Array(W + maxLag), n:new Float32Array(maxLag + 2)};
+  }
+  function detect(buf, P, gate){
+    var o = P.off, N = P.W + P.maxLag, x = P.x, i, j, tau, mean = 0, s = 0;
+    for(i=0;i<N;i++){ var v = P.ds === 2 ? (buf[o+2*i] + buf[o+2*i+1])*0.5 : buf[o+i]; x[i] = v; mean += v; }
+    mean /= N;
+    for(i=0;i<N;i++){ x[i] -= mean; s += x[i]*x[i]; }
+    var rms = Math.sqrt(s/N);
+    if(rms < gate) return {rms:rms};
+    var W = P.W, n = P.n, maxLag = P.maxLag;
+    for(tau=0;tau<=maxLag;tau++){
+      var r = 0, m = 0;
+      for(j=0;j<W;j++){ var a = x[j], b = x[j+tau]; r += a*b; m += a*a + b*b; }
+      n[tau] = m > 0 ? 2*r/m : 0;
+    }
+    var peaks = [], best = 0, pos = false, cT = -1, cV = -2;
+    tau = 1; while(tau <= maxLag && n[tau] > 0) tau++;
+    for(; tau<=maxLag; tau++){
+      if(n[tau] > 0){ if(!pos){ pos = true; cT = tau; cV = n[tau]; } else if(n[tau] > cV){ cV = n[tau]; cT = tau; } }
+      else if(pos){ pos = false; if(cT >= P.minLag){ peaks.push([cT, cV]); if(cV > best) best = cV; } }
+    }
+    if(pos && cT >= P.minLag && cT < maxLag){ peaks.push([cT, cV]); if(cV > best) best = cV; }
+    if(!peaks.length) return {rms:rms};
+    var pk = null;
+    for(i=0;i<peaks.length;i++) if(peaks[i][1] >= 0.9*best){ pk = peaks[i]; break; }
+    var T = pk[0], y0 = n[T-1], y1 = n[T], y2 = n[T+1], den = y0 + y2 - 2*y1, sh = den ? 0.5*(y0 - y2)/den : 0;
+    if(Math.abs(sh) > 1) sh = 0;
+    return {rms:rms, f:P.dsr/(T + sh), clar:y1};
+  }
+  function noiseTrack(st, rms){ st.nf = rms < st.nf ? st.nf*0.8 + rms*0.2 : st.nf*0.995 + rms*0.005; }
+  function gateOf(st){ return Math.max(MIC_SENS[micSens].floor, st.nf*2.2); }
+  function lvlUI(barId, gateId, rms, gate, voiced){
+    function pct(v){ return Math.max(0, Math.min(100, (20*Math.log(Math.max(v, 1e-6))/Math.LN10 + 66)/60*100)); }
+    var b = $(barId); if(!b) return;
+    b.style.width = pct(rms).toFixed(1) + "%"; b.classList.toggle("on", !!voiced);
+    $(gateId).style.left = pct(gate).toFixed(1) + "%";
+  }
+  function sensUI(){ document.querySelectorAll(".sensOpts .opt").forEach(function(b){ setPressed(b, b.dataset.sens === micSens); }); }
   function yinParams(sr, len, fmax){
     var maxLag = Math.min(Math.floor(sr/95), len - 256), W = Math.min(1024, len - maxLag);
     return {sr:sr, maxLag:maxLag, minLag:Math.floor(sr/(fmax || 1100)), W:W, win:W + maxLag, off:len - (W + maxLag)};
@@ -1848,8 +1942,10 @@
     var t = ctx.currentTime - sc.t0 - sc.P.win/2/sc.P.sr;
     if(t <= sc.lastT) return;
     sc.lastT = t;
-    var f = yin(sc.buf, sc.P);
-    if(f && f >= 95 && f <= 1100) scVoiced(t, 1200*Math.log(f/440)/Math.LN2); else scUnvoiced(t);
+    var gate = gateOf(sc.ns), r = detect(sc.buf, sc.P, gate);
+    var ok = r.f && r.clar >= MIC_SENS[micSens].clar - 0.04 && r.f >= 90 && r.f <= 1500;
+    if(ok) scVoiced(t, 1200*Math.log(r.f/440)/Math.LN2); else { noiseTrack(sc.ns, r.rms); scUnvoiced(t); }
+    lvlUI("scLvl", "scGate", r.rms, gate, ok);
     if(sc.cur && t - sc.lastLive > 0.35){
       sc.lastLive = t;
       var fr = sc.cur.frames;
@@ -1947,7 +2043,7 @@
       sc.playing = false;
       sc.stream = stream; sc.src = ctx.createMediaStreamSource(stream);
       sc.an = ctx.createAnalyser(); sc.an.fftSize = 2048; sc.src.connect(sc.an);
-      sc.buf = new Float32Array(sc.an.fftSize); sc.P = yinParams(ctx.sampleRate, sc.buf.length);
+      sc.buf = new Float32Array(sc.an.fftSize); sc.P = detParams(ctx.sampleRate, sc.buf.length, 90, 1500); sc.ns = {nf:MIC_SENS[micSens].floor};
       sc.frames = []; sc.notes = []; sc.cur = null; sc.pend = []; sc.noteCount = 0; sc.lastT = -1; sc.lastLive = 0; sc.shown = null;
       sc.t0 = ctx.currentTime; sc.recOffset = 0; sc.rec = null; sc.chunks = [];
       if(window.MediaRecorder){
@@ -1978,6 +2074,7 @@
   function scStop(){
     if(!sc.listening) return;
     sc.listening = false; clearTimeout(sc.stopTimer);
+    $("scLvl").style.width = "0%"; $("scLvl").classList.remove("on");
     scEndNote();
     try{ sc.src.disconnect(); }catch(e){}
     if(sc.rec && sc.rec.state !== "inactive"){ sc.rec.stop(); } else { scStopTracks(); }
@@ -2913,9 +3010,215 @@
     h += '<p class="note-s" style="margin-top:14px">標示「公版」的作品可以在 IMSLP（國際樂譜圖書館計畫）免費下載原譜；其他教材請向樂器行或樂譜網站購買。</p>';
     el.innerHTML = h;
   }
+  /* ---------- 小教室：視譜練習 ---------- */
+  var SR_LV = {
+    beg:{zh:"初級", n:1, dur:"q",  lo:60, hi:72, acc:false, show:900,  desc:"1 個四分音符 · 低音 Do – 中音 Do"},
+    mid:{zh:"中級", n:2, dur:"8",  lo:59, hi:89, acc:false, show:1600, desc:"2 個八分音符 · 低音 Si – 高音 Fa"},
+    adv:{zh:"高級", n:3, dur:"3",  lo:58, hi:90, acc:true,  show:2150, desc:"3 個三連音 · 低音 Si♭ – 高音 Fa♯ · 含升降記號"},
+    pro:{zh:"專業", n:4, dur:"16", lo:58, hi:90, acc:true,  show:2600, desc:"4 個十六分音符 · 低音 Si♭ – 高音 Fa♯ · 含升降記號"}
+  };
+  var SR_ORDER = ["beg","mid","adv","pro"], SOLF = ["Do","Re","Mi","Fa","Sol","La","Si"], SR_SHOW = 1500;
+  var sr = { lv:load("srLv", "beg"), state:"idle", q:null, ans:[], stats:{}, best:load("srBest", {}), streak:0, timer:null, last:null };
+  if(!SR_LV[sr.lv]) sr.lv = "beg";
+  function srPool(L, accOnly){
+    var out = [];
+    for(var o=3;o<=6;o++) for(var l=0;l<7;l++){
+      var accs = accOnly ? [] : [0];
+      if(L.acc || accOnly){ if([0,1,3,4,5].indexOf(l) >= 0) accs.push(1); if([1,2,4,5,6].indexOf(l) >= 0) accs.push(-1); }
+      accs.forEach(function(a){ var n = {l:l, a:a, o:o}, m = midiOf(n); if(m >= L.lo && m <= L.hi) out.push(n); });
+    }
+    return out;
+  }
+  function srPickFrom(list){ return list[Math.floor(Math.random()*list.length)]; }
+  function srMake(){
+    var L = SR_LV[sr.lv], nat = srPool({lo:L.lo, hi:L.hi, acc:false}), acc = L.acc ? srPool(L, true) : [];
+    function pick(lo, hi, prev){
+      for(var tries=0; tries<30; tries++){
+        var src = acc.length && Math.random() < 0.45 ? acc : nat;
+        var c = src.filter(function(n){ var m = midiOf(n); return m >= lo && m <= hi; });
+        if(!c.length) continue;
+        var n = srPickFrom(c);
+        if(!prev || nn(n) + n.o !== nn(prev) + prev.o) return n;
+      }
+      return srPickFrom(nat.filter(function(n){ var m = midiOf(n); return m >= lo && m <= hi; }));
+    }
+    var q = [];
+    if(L.n === 1){ q.push(pick(L.lo, L.hi, sr.last)); }
+    else {
+      var span = 14, wlo = L.lo + Math.floor(Math.random()*(L.hi - span - L.lo + 1));
+      for(var i=0;i<L.n;i++) q.push(pick(wlo, wlo + span, q[i-1]));
+    }
+    sr.last = q[q.length-1];
+    return q;
+  }
+  function srName(n){ return SOLF[n.l] + (n.a === 1 ? "♯" : n.a === -1 ? "♭" : ""); }
+  /* 五線譜：四分音符、八分／十六分連桁 */
+  function srSVG(q, dur, frame){
+    var n = q.length, gap = n === 1 ? 0 : n === 2 ? 46 : n === 3 ? 42 : 38, y0 = 44, yB = y0 + 4*SP, H = 132;
+    var x0 = 92, W = n === 1 ? 160 : x0 + (n-1)*gap + 52, s = "";
+    s += stfLines(6, W - 6, y0) + glyph("𝄞", 10, yB, FS);
+    var st = q.map(stepOf), ys = st.map(function(v){ return yStep(yB, v); }), xs = q.map(function(_, i){ return (n === 1 ? W/2 + 8 : x0) + i*gap; });
+    var avg = st.reduce(function(a, b){ return a + b; }, 0)/n, up = avg < 4;
+    var mid = yStep(yB, 4), g = '<g class="sr-notes">', mem = {};
+    q.forEach(function(nt, i){
+      var mk = nt.l + "_" + nt.o, cur = mk in mem ? mem[mk] : 0;
+      g += ledgers(xs[i], yB, st[i], 8.5);
+      if(nt.a !== cur) g += accAt(nt.a, xs[i] - 2, ys[i]);
+      mem[mk] = nt.a;
+      g += nhead(xs[i], ys[i], false);
+    });
+    function ideal(i){
+      var y = ys[i];
+      if(up) return Math.min(y - 28, (st[i] <= -2 ? mid : y - 28));
+      return Math.max(y + 28, (st[i] >= 10 ? mid : y + 28));
+    }
+    function sx(i){ return up ? xs[i] + 5.1 : xs[i] - 5.1; }
+    if(n === 1){
+      g += '<line x1="'+sx(0)+'" y1="'+(ys[0] + (up ? -1 : 1))+'" x2="'+sx(0)+'" y2="'+ideal(0)+'" stroke="var(--stave)" stroke-width="1.4"/>';
+    } else {
+      var yA = ideal(0), dy = ideal(n-1) - yA, xa = sx(0), xz = sx(n-1);
+      if(dy > 8) dy = 8; if(dy < -8) dy = -8;
+      var by = function(x){ return yA + (x - xa)/(xz - xa)*dy; }, shift = 0;
+      q.forEach(function(_, i){
+        var need = up ? (ys[i] - 24) - by(sx(i)) : (ys[i] + 24) - by(sx(i));
+        if(up && need < shift) shift = need;
+        if(!up && need > shift) shift = need;
+      });
+      q.forEach(function(_, i){ g += '<line x1="'+sx(i)+'" y1="'+(ys[i] + (up ? -1 : 1))+'" x2="'+sx(i)+'" y2="'+(by(sx(i)) + shift)+'" stroke="var(--stave)" stroke-width="1.4"/>'; });
+      var nb = dur === "16" ? 2 : 1;
+      if(dur === "3"){
+        var mx = (xa + xz)/2, my3 = yA + dy/2 + shift + (up ? -7 : 17);
+        g += '<text x="'+mx+'" y="'+my3+'" text-anchor="middle" font-family="Georgia, serif" font-style="italic" font-weight="700" font-size="13" fill="var(--stave)">3</text>';
+      }
+      for(var b=0;b<nb;b++){
+        var off = shift + (up ? b*7 : -b*7), th = up ? 4.2 : -4.2;
+        g += '<path d="M '+(xa-0.7)+' '+(yA+off)+' L '+(xz+0.7)+' '+(yA+dy+off)+' L '+(xz+0.7)+' '+(yA+dy+off+th)+' L '+(xa-0.7)+' '+(yA+off+th)+' z" fill="var(--stave)"/>';
+      }
+    }
+    g += '</g>';
+    s += g;
+    if(frame){
+      var fx = xs[0] - 30, fw = xs[n-1] - xs[0] + 60;
+      s += '<rect class="sr-track" x="'+fx+'" y="5" width="'+fw+'" height="'+(H-10)+'" rx="10" fill="none" stroke="var(--line)" stroke-width="3"/>';
+      s += '<rect class="sr-run" x="'+fx+'" y="5" width="'+fw+'" height="'+(H-10)+'" rx="10" fill="none" stroke="var(--live)" stroke-width="3.5" stroke-linecap="round"/>';
+    }
+    return '<svg class="stf sr-svg" viewBox="0 0 '+W+' '+H+'" style="max-width:'+Math.round(W*2.1)+'px" role="img" aria-label="視譜題目">' + s + '</svg>';
+  }
+  function srStatsText(){
+    var st = sr.stats[sr.lv] || {ok:0, all:0}, best = sr.best[sr.lv] || 0;
+    return "本次 " + st.ok + " / " + st.all + " 題答對 · 連續答對 " + sr.streak + " · 最佳紀錄 " + best;
+  }
+  function renderSight(){
+    var el = $("cl-sight");
+    var h = '<h2 class="cl-h">視譜練習</h2><p class="cl-lede">音符只出現一下子，外框的跑條跑完就消失，再用唱名作答。音名都是記譜音。</p>';
+    h += '<div class="srlv" id="srLvs">' + SR_ORDER.map(function(k){ var L = SR_LV[k]; return '<button class="opt srl" data-lv="'+k+'" aria-pressed="'+(k === sr.lv)+'"><b>'+L.zh+'</b><span>'+L.desc+'</span></button>'; }).join("") + '</div>';
+    h += '<div class="card sr-card"><div class="sr-top"><span class="note-s" id="srStats"></span><button class="btn sm ghost" id="srHear" hidden>▶ 聽</button></div>';
+    h += '<div class="sr-stage" id="srStage"></div>';
+    h += '<div class="sr-slots" id="srSlots"></div>';
+    h += '<div class="sr-msg" id="srMsg"></div>';
+    h += '<div class="sr-keys" id="srKeys">' + SOLF.map(function(sname, i){ return '<button class="srk" data-l="'+i+'" disabled><b>'+sname+'</b><span>'+LET.charAt(i)+'</span></button>'; }).join("") + '</div>';
+    h += '<div class="sr-acts"><button class="btn live" id="srGo">開始</button><button class="btn ghost" id="srBack" hidden>⌫ 刪除</button></div>';
+    h += '<p class="note-s" style="margin-top:10px">電腦可以用鍵盤：1–7 對應 Do–Si，Backspace 刪除，Enter 開始或下一題。</p></div>';
+    el.innerHTML = h;
+    el.querySelectorAll("#srLvs .srl").forEach(function(b){
+      b.addEventListener("click", function(){
+        sr.lv = b.dataset.lv; save("srLv", sr.lv); sr.streak = 0; sr.last = null;
+        el.querySelectorAll("#srLvs .srl").forEach(function(o){ setPressed(o, o === b); });
+        srIdle();
+      });
+    });
+    el.querySelectorAll(".srk").forEach(function(b){ b.addEventListener("click", function(){ srInput(parseInt(b.dataset.l, 10)); }); });
+    $("srGo").addEventListener("click", srGoClick);
+    $("srBack").addEventListener("click", srBackspace);
+    $("srHear").addEventListener("click", function(){ if(sr.q) playNotes(sr.q.map(function(n){ return {l:n.l, a:n.a, o:n.o}; }), {dur: sr.q.length === 1 ? 0.8 : 0.3}); });
+    srIdle();
+  }
+  function srKeysOn(on){ document.querySelectorAll(".srk").forEach(function(b){ b.disabled = !on; }); }
+  function srIdle(){
+    clearTimeout(sr.timer); sr.state = "idle"; sr.q = null; sr.ans = [];
+    var L = SR_LV[sr.lv];
+    $("srStage").innerHTML = '<div class="sr-ready"><b>' + L.zh + '</b><span>' + L.desc + '</span><span>準備好就按「開始」</span></div>';
+    $("srSlots").innerHTML = ""; $("srMsg").textContent = ""; $("srMsg").className = "sr-msg";
+    $("srGo").textContent = "開始"; $("srGo").hidden = false; $("srBack").hidden = true; $("srHear").hidden = true;
+    srKeysOn(false); $("srStats").textContent = srStatsText();
+  }
+  function srGoClick(){ if(sr.state === "idle" || sr.state === "done") srNext(); }
+  function srNext(){
+    clearTimeout(sr.timer);
+    var L = SR_LV[sr.lv];
+    sr.q = srMake(); sr.ans = []; sr.state = "show";
+    $("srGo").hidden = true; $("srBack").hidden = true; $("srHear").hidden = true;
+    $("srMsg").textContent = ""; $("srMsg").className = "sr-msg";
+    srKeysOn(false); srSlots();
+    $("srStage").innerHTML = srSVG(sr.q, L.dur, true);
+    var run = $("srStage").querySelector(".sr-run");
+    var len = run.getTotalLength ? run.getTotalLength() : 600;
+    run.style.strokeDasharray = len; run.style.strokeDashoffset = "0";
+    run.getBoundingClientRect();
+    var ms = L.show || SR_SHOW;
+    run.style.transition = "stroke-dashoffset " + ms + "ms linear";
+    requestAnimationFrame(function(){ run.style.strokeDashoffset = String(len); });
+    sr.timer = setTimeout(srHide, ms);
+  }
+  function srHide(){
+    if(sr.state !== "show") return;
+    sr.state = "answer";
+    var stg = $("srStage");
+    stg.querySelectorAll(".sr-notes, .sr-run, .sr-track").forEach(function(e){ e.style.visibility = "hidden"; });
+    srKeysOn(true);
+    $("srBack").hidden = sr.q.length === 1;
+    $("srMsg").textContent = sr.q.length === 1 ? "剛剛是什麼音？" : "依照順序輸入 " + sr.q.length + " 個音";
+    srSlots();
+  }
+  function srSlots(){
+    if(!sr.q || sr.q.length === 1){ $("srSlots").innerHTML = ""; return; }
+    var h = "";
+    for(var i=0;i<sr.q.length;i++){
+      var a = sr.ans[i], cls = "sr-slot";
+      if(sr.state === "done") cls += a === sr.q[i].l ? " ok" : " bad";
+      else if(i === sr.ans.length && sr.state === "answer") cls += " cur";
+      h += '<span class="'+cls+'">' + (a === undefined ? "" : SOLF[a]) + '</span>';
+    }
+    $("srSlots").innerHTML = h;
+  }
+  function srInput(l){
+    if(sr.state !== "answer") return;
+    sr.ans.push(l); srSlots();
+    if(sr.ans.length >= sr.q.length) srCheck();
+  }
+  function srBackspace(){ if(sr.state === "answer" && sr.ans.length){ sr.ans.pop(); srSlots(); } }
+  function srCheck(){
+    sr.state = "done"; srKeysOn(false);
+    var ok = sr.q.every(function(n, i){ return sr.ans[i] === n.l; });
+    var st = sr.stats[sr.lv] || (sr.stats[sr.lv] = {ok:0, all:0});
+    st.all++; if(ok){ st.ok++; sr.streak++; } else sr.streak = 0;
+    if(sr.streak > (sr.best[sr.lv] || 0)){ sr.best[sr.lv] = sr.streak; save("srBest", sr.best); }
+    var stg = $("srStage");
+    stg.querySelectorAll(".sr-notes").forEach(function(e){ e.style.visibility = "visible"; });
+    var labs = '<div class="sr-labs">' + sr.q.map(function(n, i){
+      var good = sr.ans[i] === n.l;
+      return '<span class="'+(good ? "ok" : "bad")+'"><b>' + srName(n) + '</b><i>' + nn(n) + n.o + '</i>' + (good ? '' : '<em>你選 ' + SOLF[sr.ans[i]] + '</em>') + '</span>';
+    }).join("") + '</div>';
+    stg.insertAdjacentHTML("beforeend", labs);
+    srSlots();
+    var m = $("srMsg");
+    m.textContent = ok ? (sr.streak >= 3 ? "答對了！連續 " + sr.streak + " 題" : "答對了！") : "差一點，正確答案標在音符下面";
+    m.className = "sr-msg " + (ok ? "ok" : "bad");
+    $("srGo").textContent = "下一題 →"; $("srGo").hidden = false; $("srBack").hidden = true; $("srHear").hidden = false;
+    $("srStats").textContent = srStatsText();
+    try{ $("srGo").focus({preventScroll:true}); }catch(e){}
+  }
+  document.addEventListener("keydown", function(e){
+    if($("view-class").hidden || $("cl-sight").hidden || toolOpen) return;
+    if(e.target && (e.target.tagName === "INPUT" || e.target.tagName === "TEXTAREA")) return;
+    if(e.key >= "1" && e.key <= "7"){ srInput(parseInt(e.key, 10) - 1); e.preventDefault(); }
+    else if(e.key === "Backspace"){ srBackspace(); e.preventDefault(); }
+    else if(e.key === "Enter" && (sr.state === "idle" || sr.state === "done")){ if(document.activeElement && document.activeElement.id !== "srGo") { srGoClick(); e.preventDefault(); } }
+  });
+
   /* ---------- 小教室：導覽 ---------- */
-  var CL_SECS = [["keys","調性"],["terms","音樂術語"],["symbols","樂譜符號"],["chords","和弦"],["fing","指法表"],["etudes","練習曲庫"]];
-  var CL_RENDER = {keys:renderKeys, terms:renderTerms, symbols:renderSymbols, chords:renderChords, fing:renderFing, etudes:renderEtudes};
+  var CL_SECS = [["sight","視譜練習"],["keys","調性"],["terms","音樂術語"],["symbols","樂譜符號"],["chords","和弦"],["fing","指法表"],["etudes","練習曲庫"]];
+  var CL_RENDER = {sight:renderSight, keys:renderKeys, terms:renderTerms, symbols:renderSymbols, chords:renderChords, fing:renderFing, etudes:renderEtudes};
   var clSec = load("clSec", "keys"), clDone = {};
   function clStickyH(){ var a = document.querySelector(".appbar"), n = $("clNav"); return (a ? a.offsetHeight : 0) + (n ? n.offsetHeight : 0); }
   function clSetTop(){ var a = document.querySelector(".appbar"); document.documentElement.style.setProperty("--ab", (a ? a.offsetHeight : 57) + "px"); }
@@ -3052,8 +3355,8 @@
   $("mtVol").addEventListener("input", function(){ mt.vol = parseFloat(this.value); save("mtVol", mt.vol); });
 
   /* ---------- 調音器 ---------- */
-  var tu = { on:false, starting:false, stream:null, src:null, an:null, buf:null, P:null, hist:[], recent:[], lastT:-9,
-             disp:0, note:null, cents:0, hz:0, mode:load("tuMode", "tenor") };
+  var tu = { on:false, starting:false, stream:null, src:null, an:null, buf:null, P:null, hist:[], lastT:-9, sm:null, pend:null,
+             ns:{nf:0.001}, lastTxt:0, disp:0, note:null, cents:0, hz:0, mode:load("tuMode", "tenor") };
   function tuName(m){ return NOTE_NAMES[mod(m, 12)] + (Math.floor(m/12) - 1); }
   function tuMsg(s){ $("tuMsg").textContent = s; }
   function tuUI(){
@@ -3077,10 +3380,10 @@
       if(dr.on){ droneStop(true); extra = "已先關掉持續音，避免調音器抓到它。"; }
       tu.stream = stream; tu.src = ctx.createMediaStreamSource(stream);
       tu.an = ctx.createAnalyser(); tu.an.fftSize = 2048; tu.src.connect(tu.an);
-      tu.buf = new Float32Array(tu.an.fftSize); tu.P = yinParams(ctx.sampleRate, tu.buf.length, 1500);
-      tu.hist = []; tu.recent = []; tu.lastT = -9; tu.note = null;
+      tu.buf = new Float32Array(tu.an.fftSize); tu.P = detParams(ctx.sampleRate, tu.buf.length, 90, 1500);
+      tu.hist = []; tu.lastT = -9; tu.note = null; tu.sm = null; tu.pend = null; tu.ns = {nf:MIC_SENS[micSens].floor};
       tu.on = true; tuUI();
-      tuMsg(extra || "吹一個長音。指針在中間綠色區域（±5 cents）內就是準的。");
+      tuMsg(extra || "吹一個長音。指針在中間綠色區域（±5 cents）內就是準的。讀數常斷掉的話，把靈敏度調高，或把手機移近喇叭口一點。");
       kick();
     }).catch(function(err){
       tu.starting = false; tuUI();
@@ -3093,24 +3396,34 @@
   function tuStop(){
     if(!tu.on) return;
     tu.on = false;
+    $("tuLvl").style.width = "0%"; $("tuLvl").classList.remove("on");
     try{ tu.src.disconnect(); }catch(e){}
     if(tu.stream){ tu.stream.getTracks().forEach(function(t){ t.stop(); }); tu.stream = null; }
     tuUI(); tuDraw();
   }
   function tuProcess(){
     tu.an.getFloatTimeDomainData(tu.buf);
-    var f = yin(tu.buf, tu.P), t = ctx.currentTime;
-    if(f && f >= 90 && f <= 1500){
-      var m = 69 + 12*Math.log(f/dr.a4)/Math.LN2;
-      tu.recent.push({t:t, m:m, f:f});
-      while(tu.recent.length > 7) tu.recent.shift();
-      var mm = median(tu.recent.map(function(r){ return r.m; }));
-      if(Math.abs(m - mm) < 0.5){
-        var n = Math.round(mm);
-        tu.note = n; tu.cents = (mm - n)*100; tu.hz = median(tu.recent.map(function(r){ return r.f; })); tu.lastT = t;
+    var t = ctx.currentTime, gate = gateOf(tu.ns), r = detect(tu.buf, tu.P, gate);
+    var ok = r.f && r.clar >= MIC_SENS[micSens].clar && r.f >= 90 && r.f <= 1500;
+    lvlUI("tuLvl", "tuGate", r.rms, gate, ok);
+    if(!ok){
+      noiseTrack(tu.ns, r.rms);
+      if(t - tu.lastT > 0.3) tu.pend = null;
+    } else {
+      var m = 69 + 12*Math.log(r.f/dr.a4)/Math.LN2, accept = true;
+      if(tu.sm === null || t - tu.lastT > 0.3){ tu.sm = m; tu.pend = null; }
+      else if(Math.abs(m - tu.sm) < 0.6){ tu.sm += (m - tu.sm)*0.35; tu.pend = null; }
+      else {
+        if(tu.pend && Math.abs(m - tu.pend.m) < 0.6){ tu.pend.k++; tu.pend.m += (m - tu.pend.m)*0.5; }
+        else tu.pend = {m:m, k:1};
+        if(tu.pend.k >= 3){ tu.sm = tu.pend.m; tu.pend = null; } else accept = false;
+      }
+      if(accept){
+        var n = Math.round(tu.sm);
+        tu.note = n; tu.cents = (tu.sm - n)*100; tu.hz = dr.a4*Math.pow(2, (tu.sm - 69)/12); tu.lastT = t;
         tu.hist.push({t:t, c:tu.cents});
       }
-    } else if(t - tu.lastT > 0.25) tu.recent = [];
+    }
     while(tu.hist.length && tu.hist[0].t < t - 6) tu.hist.shift();
   }
   function tuDraw(){
@@ -3118,14 +3431,16 @@
     var t = ctx ? ctx.currentTime : 0, live = tu.on && tu.note !== null && t - tu.lastT < 1.0;
     var el = $("tuDisp");
     el.classList.toggle("idle", !live);
-    if(tu.note !== null){
+    var nowMs = performance.now(), txt = !tu.on || nowMs - tu.lastTxt > 110;
+    if(txt) tu.lastTxt = nowMs;
+    if(tu.note !== null && txt){
       var w = tu.note + INS().off, main = tu.mode === "tenor" ? w : tu.note, other = tu.mode === "tenor" ? tu.note : w;
       $("tuNote").innerHTML = NOTE_NAMES[mod(main, 12)] + '<sub>' + (Math.floor(main/12) - 1) + '</sub>';
       $("tuSub").textContent = (tu.mode === "tenor" ? INS().zh + "記譜 · 實際音高 " : "實際音高 · " + INS().zh + "記譜 ") + tuName(other) + " · " + tu.hz.toFixed(1) + " Hz";
       var c = Math.round(tu.cents), ok = Math.abs(tu.cents) <= 5;
       $("tuCents").textContent = (c > 0 ? "+" : c < 0 ? "−" : "±") + Math.abs(c) + " cents · " + (ok ? "準" : c > 0 ? "偏高" : "偏低");
       el.classList.toggle("ok", ok && live);
-    } else {
+    } else if(tu.note === null){
       $("tuNote").textContent = "—"; $("tuSub").textContent = tu.on ? "吹一個長音" : "按「開始收音」";
       $("tuCents").textContent = "　"; el.classList.remove("ok");
     }
@@ -3162,6 +3477,10 @@
     $("tuMeterWrap").innerHTML = s;
   })();
   mtUI(); tuUI();
+
+  /* ---------- 收音靈敏度 ---------- */
+  document.querySelectorAll(".sensOpts .opt").forEach(function(b){ b.addEventListener("click", function(){ micSens = b.dataset.sens; save("micSens", micSens); sensUI(); }); });
+  sensUI();
 
   /* ---------- 樂器切換 ---------- */
   function setInst(v){
