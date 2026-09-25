@@ -2424,6 +2424,34 @@
     list.forEach(function(n, i){ tone(midiOf(n), t + i*dur, dur*0.95, 0.16); });
     if(opts.block){ var tb = t + list.length*dur + 0.1; list.forEach(function(n){ tone(midiOf(n), tb, 1.4, 0.10); }); }
   }
+  /* 鋼琴聲（合成，f 是實際頻率）：泛音頻率稍微偏高（琴弦的非諧和性），越高的泛音消失得越快；
+     敲下去先很快掉一段、再慢慢消失；音越高餘音越短。基音多一根微微走音的弦，開頭加一點琴槌聲。接到限幅器 outBus */
+  var PIANO_AMP = [1, 0.55, 0.32, 0.2, 0.12, 0.08, 0.05, 0.03];
+  function pianoNote(f){
+    if(!ensureCtx()) return;
+    var t = ctx.currentTime + 0.01, tau1 = 1.1*Math.sqrt(261.6/f), out = ctx.createGain();
+    out.gain.value = 1; out.connect(outBus);
+    function partial(fn, a, tau, detune){
+      var o = ctx.createOscillator(), g = ctx.createGain();
+      o.frequency.value = fn; if(detune) o.detune.value = detune;
+      g.gain.setValueAtTime(0.0001, t);
+      g.gain.linearRampToValueAtTime(a, t + 0.004);
+      g.gain.setTargetAtTime(a*0.4, t + 0.004, 0.06);
+      g.gain.setTargetAtTime(0.0001, t + 0.12, tau);
+      o.connect(g); g.connect(out);
+      o.start(t); o.stop(t + 0.12 + tau*5);
+    }
+    PIANO_AMP.forEach(function(a, i){
+      var n = i + 1, fn = f*n*Math.sqrt(1 + 0.0004*n*n);
+      if(fn > 9000) return;
+      partial(fn, a*0.12, tau1/(1 + 0.7*i), 0);
+    });
+    partial(f, 0.05, tau1, 1.5);
+    var nz = ctx.createBufferSource(), bp = ctx.createBiquadFilter(), ng = ctx.createGain();
+    nz.buffer = noiseBuf; bp.type = "bandpass"; bp.frequency.value = Math.min(4000, f*4); bp.Q.value = 1.2;
+    ng.gain.setValueAtTime(0.05, t); ng.gain.exponentialRampToValueAtTime(0.0001, t + 0.03);
+    nz.connect(bp); bp.connect(ng); ng.connect(out); nz.start(t);
+  }
   /* ---------- 小教室：調性 ---------- */
   var KP = [
     {M:"C",  m:"a",  t:"",  n:0},
@@ -3372,7 +3400,8 @@
   function srKeyTone(pc){
     var l = NATS.indexOf(pc), a = 0;
     if(l < 0){ l = NATS.indexOf(pc - 1); a = 1; }
-    playNotes([{l:l, a:a, o:pitchMode === "inst" ? 5 : 4}], {dur:0.45});
+    var inst = pitchMode === "inst", midi = midiOf({l:l, a:a, o:inst ? 5 : 4}) - (inst ? INS().off : 0);
+    pianoNote(dr.a4*Math.pow(2, (midi - 69)/12));
   }
   function srInput(l){
     if(sr.state !== "answer") return;
