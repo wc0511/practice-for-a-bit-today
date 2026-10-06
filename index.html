@@ -206,6 +206,10 @@
   .how-body li{margin-bottom:3px}
   .mono{font-family:var(--mono);font-size:14.5px}
   .it-act{margin-top:10px}
+  .it-score{margin-top:6px}
+  .fing-rh{margin:0 0 12px}
+  .fing-rh p{margin:0 0 2px}
+  .fing-tag{font-family:var(--mono);font-size:12px;padding:1px 7px;border-radius:4px;background:var(--accent-soft);color:var(--accent);margin-left:6px;white-space:nowrap}
 
   details.panel{margin-top:14px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
   details.panel summary{cursor:pointer;font-weight:800;font-size:17px}
@@ -749,6 +753,7 @@
             <tr><td class="t">10–12 分</td><td>3 · 反覆音模進</td></tr>
             <tr><td class="t">6–8 分</td><td>4 · 點舌</td></tr>
             <tr><td class="t">8 分</td><td>5 · 半音階（隔天）</td></tr>
+            <tr><td class="t">6 分</td><td>6 · 手指</td></tr>
           </table>
           <p style="margin:10px 0 0"><b>30 分：</b>1（只做高音區）→ 2 → 今日特訓項（特訓不在 1、2 時；否則做 3 的大調）<br><b>15 分：</b>1（只做高音區）→ 2<br><b style="color:var(--live)">1 和 2 永遠不砍。</b></p>
         </div>
@@ -1031,6 +1036,14 @@
   var evenDay = mod(dayNum,2) === 0;
   var ARTIC = [["Staccato","舌頭輕短，想著 t"],["Legato tonguing","柔起音，想著 d，氣不斷"],["兩連兩吐","兩個連奏接兩個吐音"]];
   var artic = ARTIC[mod(dayNum,3)];
+  /* 第 6 項的節奏（四天一輪）：durs 以十六分音符為單位（3 = 附點八分），每 grp 連成一個符槓群，每 bar 一小節 */
+  var FING_PAT = [
+    {nm:"長短節奏", d:"附點八分＋十六分，長—短、長—短", durs:[3,1,3,1,3,1,3,1], grp:4, bar:16, ts:[4,4]},
+    {nm:"短長節奏", d:"十六分＋附點八分，短—長、短—長", durs:[1,3,1,3,1,3,1,3], grp:4, bar:16, ts:[4,4]},
+    {nm:"三快一停", d:"前 3 個快，第 4 個拉長（三倍長）；拉長時檢查手有沒有鬆", durs:[1,1,1,3,1,1,1,3], grp:6, bar:6, ts:[3,8]},
+    {nm:"一停三快", d:"第 1 個拉長，後 3 個快", durs:[3,1,1,1,3,1,1,1], grp:6, bar:6, ts:[3,8]}
+  ];
+  var fing = FING_PAT[mod(dayNum,4)];
 
   var SPECIAL = {
     1:{item:1, title:"長音 · 高音區弱奏", text:"高音區每個音的 pp 端特別注意 —— 弱奏時芯不能散、音準不能掉。這是你器材偏暖時最容易失守的地方。"},
@@ -1121,7 +1134,17 @@
       how:'<p>從最低音起，全音域：<span class="mono">4分 ×2拍 → 8分 ×2拍 → 三連音 ×2拍 → 16分 ×2拍</span>。</p><p>Articulation 三天一輪：Staccato（t）· Legato tonguing（d）· 兩連兩吐。</p><p><b>Legato tonguing 是巴洛克的核心手段</b> —— 氣完全不中斷，舌頭只在流動中輕碰竹片。重點在「離開」，不在「碰」。</p>' },
     { n:5, name:"全音域半音階", chips:["♩ = 92","八分音符","隔天"], min:8,
       today:function(){ return !chromOn ? "今天休息，明天再做" : (dow === 0 ? "配調音器跑一遍，記下偏的音" : "照常做"); },
-      how:'<p>從 B♭ 起，上行 5 個半音再下行為一組：<span class="mono">B♭ B C C♯ D C♯ C B B♭</span>，起始音逐半音往上推，到頂之後反向下行。</p><p>C♯、G♯ 和需要側鍵的音最容易偏。</p>' }
+      how:'<p>從 B♭ 起，上行 5 個半音再下行為一組：<span class="mono">B♭ B C C♯ D C♯ C B B♭</span>，起始音逐半音往上推，到頂之後反向下行。</p><p>C♯、G♯ 和需要側鍵的音最容易偏。</p>' },
+    { n:6, name:"手指 · 放鬆加速", chips:["♩ = 放鬆的速度"], min:6,
+      today:function(){ return key.M + " 大調音階 · " + fing.nm; },
+      score:function(){ return fingSVG(fing); },
+      how:function(){
+        return '<p>手指越用力越僵，動作反而越慢。先練輕，再練快 —— 要往上推的是<b>放鬆時</b>的速度。</p><ol><li><b>剛好夠的力氣（1 分）：</b>吹記譜 G 的長音，邊吹邊放鬆按鍵，放到快漏氣再加回一點點。右手的 D、低音 C 各再做一次。</li><li><b>只按不吹（1 分）：</b>只按今天的音階，按鍵聲越小越好；手指貼著按鍵，不要抬高。</li><li><b>節奏變化（2 分）：</b>照上面今天的譜跑兩輪，再改回平均的十六分音符。</li><li><b>速度階梯（2 分）：</b>從完全放鬆的速度開始，連續吹好 3 次就 +4；手一緊就退回上一個速度。記下今天放鬆時最快的速度。</li></ol>' +
+          '<p><b>節奏四天一輪：</b></p>' + FING_PAT.map(function(p){
+            return '<div class="fing-rh"><p><b>' + p.nm + '</b>' + (p === fing ? '<span class="fing-tag">今天</span>' : '') + '：' + p.d + '</p>' + fingSVG(p) + '</div>';
+          }).join("") +
+          '<p><b>卡住的換指</b>單獨抓出來，兩個音來回吹，例如第三間 C ↔ 第四線 D（六根手指同時動）、B ↔ C。</p><p><b>姿勢：</b>右手拇指不要往上推，重量交給背帶；左手拇指用滾的按八度鍵；肩膀放下。<b style="color:var(--live)">手腕或前臂痠痛就停。</b></p>';
+      } }
   ];
 
   var mode = load("mode", "full");
@@ -1160,9 +1183,10 @@
       h += '<input type="checkbox" class="chk" id="chk-'+it.n+'" data-n="'+it.n+'"'+(isDone?" checked":"")+' aria-label="'+it.name+' 完成">';
       h += '<div><div class="it-head"><span class="it-num">'+String(it.n).padStart(2,"0")+'</span><label class="it-name" for="chk-'+it.n+'">'+it.name+'</label>'+badge+'</div>';
       h += '<p class="it-today">'+it.today(r)+'</p>';
+      if(it.score) h += '<div class="it-score">'+it.score()+'</div>';
       if(isSp) h += '<p class="it-sp"><b>特訓：</b>'+((sp.item === 3 && !minorOk) ? "今天的同主音小調超出範圍，改成大調全音域多跑一輪，節拍器 +4 試試。" : sp.text)+'</p>';
       h += '<div class="chips">' + it.chips.map(function(c){ return '<span class="chip">'+c+'</span>'; }).join("") + '<span class="chip">約 '+(r && it.minR ? it.minR : it.min)+' 分</span></div>';
-      h += '<details class="how"><summary>做法</summary><div class="how-body">'+it.how+'</div></details>';
+      h += '<details class="how"><summary>做法</summary><div class="how-body">'+(typeof it.how === "function" ? it.how() : it.how)+'</div></details>';
       h += '</div></li>';
     });
     $("items").innerHTML = h;
@@ -2393,6 +2417,54 @@
     s += stfLines(4, W - 4, y0) + clef + sg.svg + body + lab;
     s += '<line x1="'+(W-4)+'" y1="'+y0+'" x2="'+(W-4)+'" y2="'+yB+'" stroke="var(--stave)" stroke-width="1.2"/>';
     return '<svg class="stf" viewBox="0 0 '+W+' '+H+'" style="max-width:'+Math.round(W*1.7)+'px" role="img" aria-label="五線譜">' + s + '</svg>';
+  }
+
+  /* ---------- 五線譜：節奏音群（今天練這些第 6 項） ---------- */
+  /* 今天調性的大調音階往上 8 個音，套上 FING_PAT 的節奏。音域固定在 C4–C6 之間，譜面高度 76 夠放所有調 */
+  function fingSVG(pat){
+    var sc = buildScale(pn(key.M), PAT.major), notes = withOct(sc.concat([sc[0]]), 4);
+    var y0 = 24, yB = y0 + 4*SP, H = 76, x = 6, head = "", body = "", pts = [], bars = [], pos = 0;
+    head += glyph("𝄞", x, yB, FS); x += 26;
+    if(key.n){ var sg = sigSVG(key.t, key.n, x, yB); head += sg.svg; x += sg.w + 4; }
+    head += mtext(pat.ts[0], x + 8, yStep(yB, 6) + 6, 19, false, "middle", 800) + mtext(pat.ts[1], x + 8, yStep(yB, 2) + 6, 19, false, "middle", 800);
+    x += 20;
+    notes.forEach(function(n, i){
+      var st = stepOf(n), d = pat.durs[i];
+      pts.push({x:x + 6, y:yStep(yB, st), st:st, d:d});
+      x += 11 + d*5; pos += d;
+      if(pos % pat.bar === 0){ bars.push(x + 1); x += 8; }
+    });
+    pts.forEach(function(p){
+      body += ledgers(p.x, yB, p.st) + nhead(p.x, p.y, false);
+      if(p.d === 3) body += mdot(p.x + 10, p.st % 2 === 0 ? p.y - SP/2 : p.y);
+    });
+    var g = [], acc = 0;
+    pts.forEach(function(p){ g.push(p); acc += p.d; if(acc % pat.grp === 0){ body += beamGroup(g); g = []; } });
+    bars.forEach(function(bx){ body += '<line x1="'+bx+'" y1="'+y0+'" x2="'+bx+'" y2="'+yB+'" stroke="var(--stave)" stroke-width="1.2"/>'; });
+    var W = bars[bars.length-1] + 2;
+    return '<svg class="stf" viewBox="0 0 '+W+' '+H+'" style="max-width:'+Math.round(W*1.5)+'px" role="img" aria-label="'+pat.nm+'的譜">' + stfLines(4, bars[bars.length-1], y0) + head + body + '</svg>';
+  }
+  /* 一個符槓群：離中線（第三線，step 4）最遠的音決定符桿方向；符槓斜度最多 6，再整條平移讓每根符桿至少 22 長 */
+  function beamGroup(g){
+    var lo = 99, hi = -99, s = "";
+    g.forEach(function(p){ lo = Math.min(lo, p.st); hi = Math.max(hi, p.st); });
+    var up = 4 - lo > hi - 4, k = up ? -1 : 1;               // k：符桿方向（-1 朝上）
+    g.forEach(function(p){ p.sx = up ? p.x + 5.1 : p.x - 5.1; });
+    var a = g[0], z = g[g.length-1], yA = a.y + k*26, dy = Math.max(-6, Math.min(6, z.y + k*26 - yA)), shift = 0;
+    function by(x){ return yA + (x - a.sx)/(z.sx - a.sx)*dy; }
+    g.forEach(function(p){ var need = p.y + k*22 - by(p.sx); if(need*k > shift*k) shift = need; });
+    function beam(x1, x2, lv){                                // lv 1 = 十六分音符的第二條符槓，往符頭那一側排
+      var o = shift - k*lv*6.5, t = -k*3.8;
+      return '<path d="M '+x1+' '+(by(x1)+o)+' L '+x2+' '+(by(x2)+o)+' L '+x2+' '+(by(x2)+o+t)+' L '+x1+' '+(by(x1)+o+t)+' z" fill="var(--stave)"/>';
+    }
+    g.forEach(function(p, i){
+      s += mline(p.sx, p.y + k, p.sx, by(p.sx) + shift, 1.3);
+      if(p.d !== 1) return;
+      var prev = g[i-1], next = g[i+1];
+      if(next && next.d === 1) s += beam(p.sx - 0.7, next.sx + 0.7, 1);
+      else if(!(prev && prev.d === 1)) s += prev ? beam(p.sx - 7, p.sx + 0.7, 1) : beam(p.sx - 0.7, p.sx + 7, 1);
+    });
+    return s + beam(a.sx - 0.7, z.sx + 0.7, 0);
   }
 
   /* ---------- 聲音（小教室共用）：以所選樂器的實際音高播放 ---------- */
