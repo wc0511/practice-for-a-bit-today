@@ -382,6 +382,18 @@
   /* 一輪 3 秒：前 0.6 秒（20%）抖，其餘靜止；停在首頁時每 3 秒重播 */
   .sp-bang{display:inline-block;font-style:normal;transform-origin:50% 85%;animation:spQ 3s ease-in-out .7s infinite}
   @keyframes spQ{0%,20%,100%{transform:rotate(0)}3%{transform:rotate(-14deg)}6%{transform:rotate(11deg)}9%{transform:rotate(-8deg)}12%{transform:rotate(5deg)}15%{transform:rotate(-2deg)}}
+  /* 標題結尾的八分音符：進入首頁時彈兩下（先蹲、跳起、落地壓扁，第二下比較小），之後不再動 */
+  .sp-note{display:inline-block;margin-left:.08em;vertical-align:-.06em;transform-origin:50% 100%;animation:spHop .6s .1s both}
+  .sp-note svg{display:block;width:.6em;height:1em;fill:currentColor}
+  @keyframes spHop{
+    0%{transform:none}
+    10%{transform:scale(1.12,.86);animation-timing-function:cubic-bezier(.3,.6,.5,1)}
+    32%{transform:translateY(-.3em) scale(.94,1.08);animation-timing-function:cubic-bezier(.5,0,.75,.4)}
+    52%{transform:scale(1.1,.88);animation-timing-function:cubic-bezier(.3,.6,.5,1)}
+    68%{transform:translateY(-.12em) scale(.98,1.03);animation-timing-function:cubic-bezier(.5,0,.75,.4)}
+    84%{transform:scale(1.04,.96)}
+    100%{transform:none}
+  }
   /* 英文副標：跟中文標題用同一組無襯線字體 */
   .sp-en{font-family:var(--sans);font-weight:500;font-size:clamp(15px,4.2vw,20px);letter-spacing:.03em;color:var(--sp-sub);margin:14px 0 0}
   /* 按鈕字：跟標題的中文同一套字型（蘋方／思源黑體／微軟正黑體），跳過 Manrope。
@@ -392,7 +404,7 @@
   .sp-btn:active{transform:scale(.96)}
   .sp-btn:focus-visible{outline:3px solid var(--sp-hl);outline-offset:4px}
   body.splash-on{overflow:hidden}
-  @media (prefers-reduced-motion:reduce){ .splash.up{animation:spFade .25s forwards} .sp-bang{animation:none} }
+  @media (prefers-reduced-motion:reduce){ .splash.up{animation:spFade .25s forwards} .sp-bang,.sp-note{animation:none} }
 
   /* ---------- 工具：節拍器・調音器 ---------- */
   .brand-wrap{min-width:0}
@@ -572,7 +584,7 @@
 </head>
 <body>
 <div class="splash" id="splash" role="dialog" aria-label="今天練一下">
-  <h1 class="sp-title">今天<span>練</span>一下？</h1>
+  <h1 class="sp-title">今天<span>練</span>一下<i class="sp-note" aria-hidden="true"><svg viewBox="0 0 60 100"><ellipse cx="18" cy="83" rx="16" ry="12" transform="rotate(-20 18 83)"/><rect x="24.6" y="6" width="9" height="77"/><path d="M 33 6 C 35 22 57 30 50 62 C 50 45 43 37 33 33 Z"/></svg></i></h1>
   <p class="sp-en">Practice for a bit today</p>
   <button class="sp-btn" id="spGo">Go<i class="sp-bang">!</i></button>
 </div>
